@@ -10,16 +10,16 @@
     "package-win": "electron-packager .  --overwrite --asar=true --platform=win32 --arch=ia32 --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Sliding Regression Tool\"",
     "package-linux": "electron-packager . --overwrite --asar=true --platform=linux --arch=x64 --prune=true --out=release-builds"
   },
-  "repository": "https://github.com/electron/electron-quick-start",
+  "repository": "https://github.com/ORNL-AMO/Sliding-Regression-Tool",
   "keywords": [
     "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
+    "ENPI",
+    "Desktop",
+    "ORNL",
+    "DOE"
   ],
   "author": "Michael Whitmer, Preston Shires, Michael Kaminski",
-  "license": "CC0-1.0",
+  "license": "MIT",
   "dependencies": {
     "bootstrap": "^3.3.7",
     "electron": "^1.8.2",
