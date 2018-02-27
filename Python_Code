@@ -98,6 +98,48 @@ for i in range(0,len(df_results.index)):
     
 #---------------------------------------------------------------------
 
+#Adding model qualifiation criterias - taking to long to run in python, probably inefficient coding
+
+rows = len(df.index)-1
+col= len(variables_list)
+for i in range(0,col):
+    df_results['Model'+str(i)]=0
+    
+    if len(variables_list[i]) == 1:
+        v1 = variables_list[i][0]
+        
+        for j in range(0,rows-12):
+            if(df_results["R-Square"+str(i)][j]>0.5 and df_results[str(v1)+"p-value"+str(i)][j]<0.2):
+                df_results.loc[:,("Model"+str(i))][j] = "Pass"
+            
+            else:
+               df_results.loc[:,("Model"+str(i))][j] = "Fail"
+    
+    else:
+        if len(variables_list[i]) == 2:
+            v1 = variables_list[i][0]
+            v2 = variables_list[i][1]
+
+            for j in range(0,rows-12):
+                if(df_results["R-Square"+str(i)][j]>0.5 and df_results[str(v1)+"p-value"+str(i)][j]<0.2 and df_results[str(v2)+"p-value"+str(i)][j]<0.2):
+                    df_results.loc[:,("Model"+str(i))][j] = "Pass"
+               
+                else:
+                   df_results.loc[:,("Model"+str(i))][j] = "Fail"
+                
+        else:
+            v1 = variables_list[i][0]
+            v2 = variables_list[i][1]
+            v3 = variables_list[i][2]
+            
+            for j in range(0,rows-12):
+                if(df_results["R-Square"+str(i)][j]>0.5 and df_results[str(v1)+"p-value"+str(i)][j]<0.2 and df_results[str(v2)+"p-value"+str(i)][j]<0.2 and df_results[str(v3)+"p-value"+str(i)][j]<0.2):
+                    df_results.loc[:,("Model"+str(i))][j] = "Pass"
+               
+                else:
+                   df_results.loc[:,("Model"+str(i))][j] = "Fail"
+
+#-----------------------------------------------------------------------
 #plot the sliding R-Square graph based on user input - here plotting for 3-variable 
 rows = len(df_results.index)
 months = range(1,rows+1)
