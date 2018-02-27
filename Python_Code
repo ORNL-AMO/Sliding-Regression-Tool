@@ -73,3 +73,17 @@ plot1.plot(months, df_results["R-Square6"], color='green', linestyle='dashed', m
 plt.show() 
 
 #-----------------------------------------------------------------------------
+# Features to be added
+
+# the testing of the model based on SEP criterias and qualifying it ; failed models will be differentiated in the graph 
+# % Savings to be calculated and needs to be added to graph and as seperate table output 
+# Ability to handle different number of energy sources and variables 
+
+
+
+
+
+
+
+
+
