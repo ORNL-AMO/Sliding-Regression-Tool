@@ -139,6 +139,28 @@ for i in range(0,col):
                 else:
                    df_results.loc[:,("Model"+str(i))][j] = "Fail"
 
+#-------------------------------------------------------------------------------------
+#The savings numbers are caculated in this section with base year/model year as the first 12 months 
+#we use model6 to detriming savings, in practise the user should be able to choose model/ base year and model year
+
+df_savings = pd.merge(df, df_results, on='Date')
+
+df_savings["Total Actual Elect"] = 0
+df_savings["Total Model Elect"] = 0
+df_savings["%Savings"] = 0
+rows = len(df_results.index)-1
+
+for j in range(0,rows-12):
+    df_savings["Total Actual Elect"][j] = sum(df_savings["Elect (MMBTU)"][j:j+12])
+    
+    #this provides a example for model-6 with model year starting with jan 2015. It should be based on user input
+    df_savings["Total Model Elect"][j] = df_savings["ProductionCo-eff6"][0] * sum(df_savings["Production"][j:j+12]) + df_savings["HDDCo-eff6"][0] * sum(df_savings["HDD"][j:j+12]) +df_savings["CDDCo-eff6"][0] * sum(df_savings["CDD"][j:j+12]) + df_savings["Intercept6"][0]*12
+    
+    
+df_savings["%Savings"] = ((df_savings["Total Model Elect"]-df_savings["Total Actual Elect"])/df_savings["Total Model Elect"])
+
+df_savings.style.format({'%Savings': '{:,.2%}'.format})
+
 #-----------------------------------------------------------------------
 #plot the sliding R-Square graph based on user input - here plotting for 3-variable 
 rows = len(df_results.index)
