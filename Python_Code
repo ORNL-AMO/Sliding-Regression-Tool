@@ -32,30 +32,71 @@ for i in range(1,len(variables)+1):
 #-------------------------------------------------------------    
 df_results = pd.DataFrame(df.loc[0:len(df)], columns=['Date'])
 
-#Regression table for electricity ; need to run similar regression for other energy sources 
+#Regression table for electricity 
 rows = len(df.index)-1
-columns= len(variables_list)
-for i in range(0,columns):
+col= len(variables_list)
+for i in range(0,col):
     result=[]
-    result_title = ['Date',"R-Square"+str(i), "Intercept"+str(i)]
-    for j in range(0,rows-12):
-        
-        #choose electricity and the variables
-        electricity=df["Elect (MMBTU)"][j:j+12]
-        var = df[variables_list[i]][j:j+12] 
-        var = sm.add_constant(var)  
-        model = sm.OLS(electricity,var).fit()
-        predictions = model.predict(var)
-        result.append([df["Date"].iloc[j],model.rsquared,model.params['const']])
-        df_temp = pd.DataFrame(data=result, columns=result_title) 
-    df_results = pd.merge(df_results, df_temp, on='Date')
+    
+    if len(variables_list[i]) == 1:
+        v1 = variables_list[i][0]
+        result_title = ['Date',"R-Square"+str(i), "Intercept"+str(i),str(v1)+"Co-eff"+str(i),str(v1)+"p-value"+str(i)]
 
+        for j in range(0,rows-12):
+
+            #choose electricity and the variables
+            electricity=df["Elect (MMBTU)"][j:j+12]
+            var = df[variables_list[i]][j:j+12] 
+            var = sm.add_constant(var)  
+            model = sm.OLS(electricity,var).fit()
+            predictions = model.predict(var)
+            result.append([df["Date"].iloc[j],model.rsquared,model.params['const'],model.params[v1],model.pvalues[v1]])
+            df_temp = pd.DataFrame(data=result, columns=result_title) 
+        df_results = pd.merge(df_results, df_temp, on='Date')
+    
+    else:
+        if len(variables_list[i]) == 2:
+            v1 = variables_list[i][0]
+            v2 = variables_list[i][1]
+            result_title = ['Date',"R-Square"+str(i), "Intercept"+str(i),str(v1)+"Co-eff"+str(i),str(v1)+"p-value"+str(i),str(v2)+"Co-eff"+str(i),str(v2)+"p-value"+str(i)]
+
+            for j in range(0,rows-12):
+
+                #choose electricity and the variables
+                electricity=df["Elect (MMBTU)"][j:j+12]
+                var = df[variables_list[i]][j:j+12] 
+                var = sm.add_constant(var)  
+                model = sm.OLS(electricity,var).fit()
+                predictions = model.predict(var)
+                result.append([df["Date"].iloc[j],model.rsquared,model.params['const'],model.params[v1],model.pvalues[v1],model.params[v2],model.pvalues[v2]])
+                df_temp = pd.DataFrame(data=result, columns=result_title) 
+            df_results = pd.merge(df_results, df_temp, on='Date')
+
+        else:
+            v1 = variables_list[i][0]
+            v2 = variables_list[i][1]
+            v3 = variables_list[i][2]
+            result_title = ['Date',"R-Square"+str(i), "Intercept"+str(i),str(v1)+"Co-eff"+str(i),str(v1)+"p-value"+str(i),str(v2)+"Co-eff"+str(i),str(v2)+"p-value"+str(i),str(v3)+"Co-eff"+str(i),str(v3)+"p-value"+str(i)]
+
+            for j in range(0,rows-12):
+
+                #choose electricity and the variables
+                electricity=df["Elect (MMBTU)"][j:j+12]
+                var = df[variables_list[i]][j:j+12] 
+                var = sm.add_constant(var)  
+                model = sm.OLS(electricity,var).fit()
+                predictions = model.predict(var)
+                result.append([df["Date"].iloc[j],model.rsquared,model.params['const'],model.params[v1],model.pvalues[v1],model.params[v2],model.pvalues[v2],model.params[v3],model.pvalues[v3]])
+                df_temp = pd.DataFrame(data=result, columns=result_title) 
+            df_results = pd.merge(df_results, df_temp, on='Date')
+
+#----------------------------------------------------------------------
 #Add months for reference 
 df_results["Months"]=0
 for i in range(0,len(df_results.index)):
     df_results["Months"][i]=df_results["Date"].iloc[i].month
     
----------------------------------------------------------------------
+#---------------------------------------------------------------------
 
 #plot the sliding R-Square graph based on user input - here plotting for 3-variable 
 rows = len(df_results.index)
