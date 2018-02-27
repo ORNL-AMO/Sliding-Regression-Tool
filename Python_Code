@@ -1,1 +1,75 @@
 
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+import seaborn
+import itertools
+from itertools import combinations
+import time
+%matplotlib inline
+
+#------------------------------------------------------------
+#Read table
+df = pd.read_excel("Test Data.xlsx") 
+
+#define independent variables
+#This needs to be all the variables in the table based on user selection
+variables = ["Production","CDD","HDD"]
+
+#find all combinations of the independent variables as list of lists 
+variables_list = []
+for i in range(1,len(variables)+1):
+    
+    variables_tuples = list(itertools.combinations(variables, i))
+    
+    temp_list = []
+    
+    temp_list = [list(elem) for elem in variables_tuples]
+    
+    variables_list = variables_list + temp_list
+    
+#-------------------------------------------------------------    
+df_results = pd.DataFrame(df.loc[0:len(df)], columns=['Date'])
+
+#Regression table for electricity ; need to run similar regression for other energy sources 
+rows = len(df.index)-1
+columns= len(variables_list)
+for i in range(0,columns):
+    result=[]
+    result_title = ['Date',"R-Square"+str(i), "Intercept"+str(i)]
+    for j in range(0,rows-12):
+        
+        #choose electricity and the variables
+        electricity=df["Elect (MMBTU)"][j:j+12]
+        var = df[variables_list[i]][j:j+12] 
+        var = sm.add_constant(var)  
+        model = sm.OLS(electricity,var).fit()
+        predictions = model.predict(var)
+        result.append([df["Date"].iloc[j],model.rsquared,model.params['const']])
+        df_temp = pd.DataFrame(data=result, columns=result_title) 
+    df_results = pd.merge(df_results, df_temp, on='Date')
+
+#Add months for reference 
+df_results["Months"]=0
+for i in range(0,len(df_results.index)):
+    df_results["Months"][i]=df_results["Date"].iloc[i].month
+    
+---------------------------------------------------------------------
+
+#plot the sliding R-Square graph based on user input - here plotting for 3-variable 
+rows = len(df_results.index)
+months = range(1,rows+1)
+fig = plt.figure(figsize=(15,8))
+    
+plot1 = fig.add_subplot(2,2,1)
+plot1.set_xlabel("Month")
+plot1.set_ylabel("R- Square")
+plot1.set_title("Electricity")
+plot1.set_ylim([0,1])
+
+plot1.plot(months, df_results["R-Square6"], color='green', linestyle='dashed', marker='o',markerfacecolor='blue', markersize=4)
+
+plt.show() 
+
+#-----------------------------------------------------------------------------
