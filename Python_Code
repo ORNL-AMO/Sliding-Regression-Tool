@@ -166,7 +166,7 @@ df_savings = pd.merge(df, df_results, on='Date')
 
 df_savings["Total Actual Elect"] = 0
 df_savings["Total Model Elect"] = 0
-df_savings["%Savings"] = 0
+df_savings["%Savings"] = 0.00
 
 rows = len(df.index)
 for j in range(0,rows-11):
@@ -175,10 +175,11 @@ for j in range(0,rows-11):
     #this provides a example for model-6 with model year starting with jan 2016. It should be based on user input // note some model might not have all 3 variables, run a loop maybe
     df_savings["Total Model Elect"][j] = df_savings["ProductionCo-eff"+str(model)][year] * sum(df["Production"][j:j+12]) + df_savings["HDDCo-eff"+str(model)][year] * sum(df["HDD"][j:j+12]) +df_savings["CDDCo-eff"+str(model)][year] * sum(df["CDD"][j:j+12]) + df_savings["Intercept"+str(model)][year]*12
     
-#this formula needs to be changed to accomodate chaining conditions
-df_savings["%Savings"] = ((df_savings["Total Model Elect"]-df_savings["Total Actual Elect"])/df_savings["Total Model Elect"])
+    #the tool will consider the first row of the input and the 11 months following it as the baseline year
+    df_savings["%Savings"][j] = 1 - ((df_savings["Total Model Elect"][0]*df_savings["Total Actual Elect"][j])/(df_savings["Total Actual Elect"][0]*df_savings["Total Model Elect"][j]))
 
 df_savings.style.format({'%Savings': '{:,.2%}'.format})
+
 
 
 #--------------------------------------------------------------------------------------------------------------------------
