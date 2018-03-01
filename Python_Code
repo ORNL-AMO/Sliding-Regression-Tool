@@ -155,8 +155,9 @@ for i in range(0,col):
 
 #####STEP 3 - FINDING SAVINGS ######
 
-#The savings numbers are caculated in this section with base year/model year as the first 12 months 
-#we use model6 to detriming savings, in practise the user should be able to choose model/ base year and model year
+#The savings numbers are caculated in this section with base year as the first 12 months and model year as year2. 
+#we use model6 to determine savings, in the tool the user should be able to choose model and model year. 
+#Lets fix the base year to be first 12 months for the initial version of the tool.
 
 model_year = str("2006-01-01")    #needs to be user defined; year is defined by the 12month period following specified period 
 year = 12   # model year jan 2016 corresponds to the 12th row on the table {df["Date"][12]}; find this from user input
