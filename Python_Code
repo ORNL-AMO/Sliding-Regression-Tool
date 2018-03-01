@@ -8,14 +8,20 @@ import itertools
 from itertools import combinations
 import time
 %matplotlib inline
-
-#------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
 #Read table
 df = pd.read_excel("Test Data.xlsx") 
 
+#####STEP 1 - RUN REGRESSION ANALYSIS FOR ALL VARIABLES FOR ALL TIME FRAMES######
+
 #define independent variables
-#This needs to be all the variables in the table based on user selection
-variables = ["Production","CDD","HDD"]
+#This needs to be setup such that lesser/greater than 3 variables can also be handled 
+var1 = df.columns[3]
+var2 = df.columns[4]
+var3 = df.columns[5]
+variables = [var1,var2,var3]
+
 
 #find all combinations of the independent variables as list of lists 
 variables_list = []
@@ -28,12 +34,12 @@ for i in range(1,len(variables)+1):
     temp_list = [list(elem) for elem in variables_tuples]
     
     variables_list = variables_list + temp_list
-    
-#-------------------------------------------------------------    
-df_results = pd.DataFrame(df.loc[0:len(df)], columns=['Date'])
+
 
 #Regression table for electricity 
-rows = len(df.index)-1
+df_results = pd.DataFrame(df.loc[0:len(df)], columns=['Date'])
+
+rows = len(df.index)
 col= len(variables_list)
 for i in range(0,col):
     result=[]
@@ -42,7 +48,7 @@ for i in range(0,col):
         v1 = variables_list[i][0]
         result_title = ['Date',"R-Square"+str(i), "Intercept"+str(i),str(v1)+"Co-eff"+str(i),str(v1)+"p-value"+str(i)]
 
-        for j in range(0,rows-12):
+        for j in range(0,rows-11):
 
             #choose electricity and the variables
             electricity=df["Elect (MMBTU)"][j:j+12]
@@ -60,7 +66,7 @@ for i in range(0,col):
             v2 = variables_list[i][1]
             result_title = ['Date',"R-Square"+str(i), "Intercept"+str(i),str(v1)+"Co-eff"+str(i),str(v1)+"p-value"+str(i),str(v2)+"Co-eff"+str(i),str(v2)+"p-value"+str(i)]
 
-            for j in range(0,rows-12):
+            for j in range(0,rows-11):
 
                 #choose electricity and the variables
                 electricity=df["Elect (MMBTU)"][j:j+12]
@@ -78,7 +84,7 @@ for i in range(0,col):
             v3 = variables_list[i][2]
             result_title = ['Date',"R-Square"+str(i), "Intercept"+str(i),str(v1)+"Co-eff"+str(i),str(v1)+"p-value"+str(i),str(v2)+"Co-eff"+str(i),str(v2)+"p-value"+str(i),str(v3)+"Co-eff"+str(i),str(v3)+"p-value"+str(i)]
 
-            for j in range(0,rows-12):
+            for j in range(0,rows-11):
 
                 #choose electricity and the variables
                 electricity=df["Elect (MMBTU)"][j:j+12]
@@ -90,17 +96,22 @@ for i in range(0,col):
                 df_temp = pd.DataFrame(data=result, columns=result_title) 
             df_results = pd.merge(df_results, df_temp, on='Date')
 
-#----------------------------------------------------------------------
-#Add months for reference 
+#Add months/year for reference 
 df_results["Months"]=0
+df_results["Year"]=0
 for i in range(0,len(df_results.index)):
     df_results["Months"][i]=df_results["Date"].iloc[i].month
+    df_results["Year"][i]=df_results["Date"].iloc[i].year
     
-#---------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+
+
+#####STEP 2 - FINDING MODELS THAT PASS AND THOSE THAT FAIL######
 
 #Adding model qualifiation criterias - taking to long to run in python, probably inefficient coding
 
-rows = len(df.index)-1
+rows = len(df.index)
 col= len(variables_list)
 for i in range(0,col):
     df_results['Model'+str(i)]=0
@@ -108,7 +119,7 @@ for i in range(0,col):
     if len(variables_list[i]) == 1:
         v1 = variables_list[i][0]
         
-        for j in range(0,rows-12):
+        for j in range(0,rows-11):
             if(df_results["R-Square"+str(i)][j]>0.5 and df_results[str(v1)+"p-value"+str(i)][j]<0.2):
                 df_results.loc[:,("Model"+str(i))][j] = "Pass"
             
@@ -120,7 +131,7 @@ for i in range(0,col):
             v1 = variables_list[i][0]
             v2 = variables_list[i][1]
 
-            for j in range(0,rows-12):
+            for j in range(0,rows-11):
                 if(df_results["R-Square"+str(i)][j]>0.5 and df_results[str(v1)+"p-value"+str(i)][j]<0.2 and df_results[str(v2)+"p-value"+str(i)][j]<0.2):
                     df_results.loc[:,("Model"+str(i))][j] = "Pass"
                
@@ -132,37 +143,57 @@ for i in range(0,col):
             v2 = variables_list[i][1]
             v3 = variables_list[i][2]
             
-            for j in range(0,rows-12):
+            for j in range(0,rows-11):
                 if(df_results["R-Square"+str(i)][j]>0.5 and df_results[str(v1)+"p-value"+str(i)][j]<0.2 and df_results[str(v2)+"p-value"+str(i)][j]<0.2 and df_results[str(v3)+"p-value"+str(i)][j]<0.2):
                     df_results.loc[:,("Model"+str(i))][j] = "Pass"
                
                 else:
                    df_results.loc[:,("Model"+str(i))][j] = "Fail"
 
-#-------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+
+#####STEP 3 - FINDING SAVINGS ######
+
 #The savings numbers are caculated in this section with base year/model year as the first 12 months 
 #we use model6 to detriming savings, in practise the user should be able to choose model/ base year and model year
+
+model_year = str("2006-01-01")    #needs to be user defined; year is defined by the 12month period following specified period 
+year = 12   # model year jan 2016 corresponds to the 12th row on the table {df["Date"][12]}; find this from user input
+model = 6                          #needs to be user defined 
 
 df_savings = pd.merge(df, df_results, on='Date')
 
 df_savings["Total Actual Elect"] = 0
 df_savings["Total Model Elect"] = 0
 df_savings["%Savings"] = 0
-rows = len(df_results.index)-1
 
-for j in range(0,rows-12):
-    df_savings["Total Actual Elect"][j] = sum(df_savings["Elect (MMBTU)"][j:j+12])
+rows = len(df.index)
+for j in range(0,rows-11):
+    df_savings["Total Actual Elect"][j] = sum(df["Elect (MMBTU)"][j:j+12])
     
-    #this provides a example for model-6 with model year starting with jan 2015. It should be based on user input
-    df_savings["Total Model Elect"][j] = df_savings["ProductionCo-eff6"][0] * sum(df_savings["Production"][j:j+12]) + df_savings["HDDCo-eff6"][0] * sum(df_savings["HDD"][j:j+12]) +df_savings["CDDCo-eff6"][0] * sum(df_savings["CDD"][j:j+12]) + df_savings["Intercept6"][0]*12
+    #this provides a example for model-6 with model year starting with jan 2016. It should be based on user input // note some model might not have all 3 variables, run a loop maybe
+    df_savings["Total Model Elect"][j] = df_savings["ProductionCo-eff"+str(model)][year] * sum(df["Production"][j:j+12]) + df_savings["HDDCo-eff"+str(model)][year] * sum(df["HDD"][j:j+12]) +df_savings["CDDCo-eff"+str(model)][year] * sum(df["CDD"][j:j+12]) + df_savings["Intercept"+str(model)][year]*12
     
-    
+#this formula needs to be changed to accomodate chaining conditions
 df_savings["%Savings"] = ((df_savings["Total Model Elect"]-df_savings["Total Actual Elect"])/df_savings["Total Model Elect"])
 
 df_savings.style.format({'%Savings': '{:,.2%}'.format})
 
-#-----------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+#####STEP 4 - RESULTS: PLOTS AND TABLES ######
+
+#For Table 
+#Return the actual actual and modelled energy savings plus the % savings corresponding to Jan of each year from savings tables
+#calculate annual savings from total savings number
+
+
 #plot the sliding R-Square graph based on user input - here plotting for 3-variable 
+#hightlight the models that pass in green and the ones that fail in red 
+#hightlight the modelyear that was chosen with a spceial design
+#create a secodnary axis that shows the total savings curve
 rows = len(df_results.index)
 months = range(1,rows+1)
 fig = plt.figure(figsize=(15,8))
@@ -177,12 +208,10 @@ plot1.plot(months, df_results["R-Square6"], color='green', linestyle='dashed', m
 
 plt.show() 
 
-#-----------------------------------------------------------------------------
-# Features to be added
+#--------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------# Features to be added
 
-# the testing of the model based on SEP criterias and qualifying it ; failed models will be differentiated in the graph 
-# % Savings to be calculated and needs to be added to graph and as seperate table output 
-# Ability to handle different number of energy sources and variables 
+# the model takes the first 12 months as the baseline period 
 
 
 
