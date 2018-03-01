@@ -4,10 +4,7 @@ import {HomeComponent} from "./home/home.component";
 import {TableComponent} from "./table/table.component";
 
 const appRoutes: Routes = [
-  {
-    path: '',
-    component: HomeComponent
-  },
+  
   {
     path: 'home',
     component: HomeComponent
