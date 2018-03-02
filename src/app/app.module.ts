@@ -8,6 +8,7 @@ import { NavBarComponent } from './nav-bar/nav-bar.component';
 import { HomeComponent } from './home/home.component';
 import { TableComponent } from './table/table.component';
 import {RouterModule} from "@angular/router";
+import { GraphComponent } from './graph/graph.component';
 
 
 
@@ -16,7 +17,8 @@ import {RouterModule} from "@angular/router";
     AppComponent,
     NavBarComponent,
     HomeComponent,
-    TableComponent
+    TableComponent,
+    GraphComponent
   ],
   imports: [
     BrowserModule,
