@@ -9,6 +9,7 @@ import { HomeComponent } from './home/home.component';
 import { TableComponent } from './table/table.component';
 import {RouterModule} from "@angular/router";
 import { GraphComponent } from './graph/graph.component';
+import { SlidingRegressionComponent } from './sliding-regression/sliding-regression.component';
 
 
 
@@ -18,7 +19,8 @@ import { GraphComponent } from './graph/graph.component';
     NavBarComponent,
     HomeComponent,
     TableComponent,
-    GraphComponent
+    GraphComponent,
+    SlidingRegressionComponent
   ],
   imports: [
     BrowserModule,
