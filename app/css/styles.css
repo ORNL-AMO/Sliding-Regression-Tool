@@ -9,6 +9,12 @@ html, body {
     align-items: center;
 }
 
+#graph-container {
+    text-align: center;
+    align-content: center;
+    align-items: center;
+}
+
 #dropZone {
     border: 2px solid #b5b5b5;
     background: #e8e8e8;

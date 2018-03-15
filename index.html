@@ -10,6 +10,7 @@
   <script src="node_modules/jquery/dist/jquery.min.js"></script>
   <script src="node_modules/xlsx/dist/shim.min.js"></script>
   <script src="node_modules/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="node_modules/d3/build/d3.min.js"></script>
 
 </head>
 <body>
@@ -104,8 +105,17 @@
     <div class="col-3"></div>
   </div>
 
+  <div id="graph-container" class="row">
+    <div class="col-3"></div>
+    <div class="col-6">
+      <div id="graph"></div>
+    </div>
+    <div class="col-3"></div>
+  </div>
+
 
 </body>
   <script src="app/regression_calc.js"></script>
   <script src="app/enpi_tool.js"></script>
+  <script src="app/graph.js"></script>
 </html>
