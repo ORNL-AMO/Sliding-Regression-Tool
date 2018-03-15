@@ -1,0 +1,140 @@
+<!doctype html>
+<head>
+  <meta charset="utf-8">
+
+  <link rel="stylesheet" href="app/css/styles.css">
+  <link rel="stylesheet" href="fontawesome-free-5.0.8/web-fonts-with-css/css/fontawesome-all.css">
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+
+  <script src="node_modules/d3/build/d3.min.js"></script>
+  <script src="node_modules/jquery/dist/jquery.min.js"></script>
+  <script src="node_modules/xlsx/dist/shim.min.js"></script>
+  <script src="node_modules/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="node_modules/d3/build/d3.min.js"></script>
+
+</head>
+<body>
+  <div class="row">
+    <div class="col-3"></div>
+    <div id="drop-container" class="col-6">
+      <div class="row" style="padding-bottom: 25px;">
+        <div class="col-12">
+          <div class="row">
+            <div class="col-12">
+              <input value="Test Residual Analysis" onclick="runTestCase()" name="button3" type="button">
+            </div>
+          </div>
+          <div class="row" style="padding-top: 35px;">
+            <div class="col-12">
+              <input value="Clear Data" onclick="clearData()" name="button3" type="button">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div id="dropZone"><p id="dragAndDropText">Drag and Drop Excel Data Here</p><i id="dragAndDropArrow" class="fas fa-arrow-alt-circle-down"></i></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-3"></div>
+  </div>
+
+
+  <div id="data-table-container" class="row">
+    <div class="col-3"></div>
+    <div class="col-6">
+      <table id="data-table">
+        <tr></tr>
+      </table>
+    </div>
+    <div class="col-3"></div>
+  </div>
+
+  <!--<div class="container">-->
+    <!--<div class="row">-->
+        <!--<div id="tableGoesHere" class="col-md-6">-->
+      <!--</div>&lt;!&ndash; col &ndash;&gt;-->
+    <!--</div>&lt;!&ndash; /row &ndash;&gt;-->
+  <!--</div>&lt;!&ndash; container &ndash;&gt;-->
+
+  <div id="info-row" class="row">
+    <div class="col-3"></div>
+    <div class="col-6">
+      <table>
+        <tr>
+          <th colspan="4" style="text-align: center;">Regression Information</th>
+        </tr>
+        <tr>
+          <td colspan="4" style="text-align: center;">The Fitted Model is:</td>
+        </tr>
+        <tr>
+          <td id="fitted-model" colspan="4" style="text-align: center; height: 41px;"></td>
+        </tr>
+        <tr>
+          <td>R-Square</td>
+          <td id="r-square" class="box-right data-box"></td>
+          <td>F-Statistic</td>
+          <td id="f-statistic"></td>
+        </tr>
+        <tr>
+          <td>Mean</td>
+          <td id="mean" class="box-right data-box"></td>
+          <td>Variance</td>
+          <td id="variance" class="data-box"></td>
+        </tr>
+        <tr>
+          <td>Mean: The First-Half</td>
+          <td id="mean-1" class="box-right data-box"></td>
+          <td>Mean: The Second-Half</td>
+          <td id="mean-2" class="data-box"></td>
+        </tr>
+        <tr>
+          <td>Variance:  The First-Half</td>
+          <td id="var-1" class="box-right data-box"></td>
+          <td>Variance:  The Second-Half</td>
+          <td id="var-2" class="data-box"></td>
+        </tr>
+        <tr>
+          <td>First Order Serial-Correlation</td>
+          <td id="first-order" class="box-right data-box"></td>
+          <td>Second Order Serial-Correlation</td>
+          <td id="second-order" class="data-box"></td>
+        </tr>
+        <tr>
+          <td>Durbin-Watson Statistic</td>
+          <td id="durbin-watson" class="box-right data-box"></td>
+          <td>Mean Absolute Errors</td>
+          <td id="mean-abs-error" class="data-box"></td>
+        </tr>
+        <tr>
+          <td  colspan="4" style="text-align: center;"> Normality Condition:</td>
+        </tr>
+        <tr>
+          <td id="normality" colspan="4" style="text-align: center; height: 41px;"></td>
+        </tr>
+        <tr>
+          <td  colspan="4" style="text-align: center;">i<sup>th</sup> Residual:</td>
+        </tr>
+        <tr>
+          <td id="i-residual" colspan="4" style="text-align: center; height: 41px;"></td>
+        </tr>
+      </table>
+    </div>
+    <div class="col-3"></div>
+  </div>
+
+  <div id="graph-container" class="row">
+    <div class="col-3"></div>
+    <div class="col-6">
+      <div id="graph"></div>
+    </div>
+    <div class="col-3"></div>
+  </div>
+
+
+</body>
+  <script src="app/regression_calc.js"></script>
+  <script src="app/enpi_tool.js"></script>
+  <script src="app/graph.js"></script>
+</html>
