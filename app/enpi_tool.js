@@ -191,12 +191,12 @@ var normalityCond;
 var iResidual = [];
 
 function calcENPI(){
+    clearData();
 
     calc2(5, formatted_json);
 
     fillDataBoxs();
-
-    //display();
+    fillDataTable(formatted_json);
 }
 
 function fillDataBoxs(){
@@ -216,55 +216,79 @@ function fillDataBoxs(){
     document.getElementById("mean-abs-error").textContent = meanAbsE;
     document.getElementById("normality").textContent = normalityCond;
     document.getElementById("i-residual").textContent = iResidual;
-
-    console.log(iResidual);
-
 }
 
+function fillDataTable(json){
 
-function display(){
-    /* The function */
+    var dataTable = document.getElementById("data-table");
+    var firstRow = dataTable.insertRow(0);
 
-    function json2table(json, classes) {
-        var cols = Object.keys(json[0]);
+    var independentKeys = Object.keys(json.independent);
+    var dependentKeys = Object.keys(json.dependent);
 
-        var headerRow = '';
-        var bodyRows = '';
-
-        classes = classes || '';
-
-        function capitalizeFirstLetter(string) {
-            return string.charAt(0).toUpperCase() + string.slice(1);
-        }
-
-        cols.map(function(col) {
-            headerRow += '<th>' + capitalizeFirstLetter(col) + '</th>';
-        });
-
-        json.map(function(row) {
-            bodyRows += '<tr>';
-
-            cols.map(function(colName) {
-                bodyRows += '<td>' + row[colName] + '</td>';
-            })
-
-            bodyRows += '</tr>';
-        });
-
-        return '<table class="' +
-            classes +
-            '"><thead><tr>' +
-            headerRow +
-            '</tr></thead><tbody>' +
-            bodyRows +
-            '</tbody></table>';
+    for(var i = 0; i < Object.keys(json.independent).length; i++){
+        var newCol = firstRow.insertCell(0);
+        newCol.innerHTML = ("<strong>"+independentKeys[i]+"</strong>");
+        //newCol.innerHTML = json["independent"][independentKeys[i]];
     }
 
-    document.getElementById('tableGoesHere').innerHTML = json2table(raw_json, 'table');
-}
+    for(var i = 0; i < Object.keys(json.dependent).length; i++){
+        var newCol = firstRow.insertCell(0);
+        newCol.innerHTML =("<strong>"+ dependentKeys[i]+"</strong>");
+    }
 
+    //Date should only have one col
+    var newCol = firstRow.insertCell(0);
+    newCol.innerHTML = ("<strong>"+Object.keys(json.date)[0]+"</strong>");
+
+    for(var i = 1; i < json.date.Date.length; i++){
+        var newRow = dataTable.insertRow(i);
+
+
+
+        for(var j = 0; j < Object.keys(json.independent).length; j++){
+            var newCol = newRow.insertCell(0);
+            newCol.innerHTML = json["independent"][independentKeys[j]][i];
+            //newCol.innerHTML = json["independent"][independentKeys[i]];
+        }
+
+
+        for(var j = 0; j < Object.keys(json.dependent).length; j++){
+            var newCol = newRow.insertCell(0);
+            newCol.innerHTML = json["dependent"][dependentKeys[j]][i];
+        }
+
+        //Date should only have one col
+        var newCol = newRow.insertCell(0);
+        newCol.innerHTML = json["date"][Object.keys(json.date)][i];
+    }
+}
 
 function runTestCase(){
+    clearData();
     calc2(5, testJson);
     fillDataBoxs();
+    fillDataTable(testJson);
 }
+
+function clearData(){
+    document.getElementById("data-table").innerHTML="";
+
+    document.getElementById("fitted-model").textContent = "";
+    document.getElementById("r-square").textContent = "";
+    document.getElementById("f-statistic").textContent = "";
+    document.getElementById("mean").textContent = "";
+    document.getElementById("variance").textContent = "";
+    document.getElementById("mean-1").textContent = "";
+    document.getElementById("mean-2").textContent = "";
+    document.getElementById("var-1").textContent = "";
+    document.getElementById("var-2").textContent = "";
+    document.getElementById("first-order").textContent = "";
+    document.getElementById("second-order").textContent = "";
+    document.getElementById("durbin-watson").textContent = "";
+    document.getElementById("mean-abs-error").textContent = "";
+    document.getElementById("normality").textContent = "";
+    document.getElementById("i-residual").textContent = "";
+
+}
+

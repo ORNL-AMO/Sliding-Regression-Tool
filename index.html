@@ -19,7 +19,16 @@
     <div id="drop-container" class="col-6">
       <div class="row" style="padding-bottom: 25px;">
         <div class="col-12">
-          <input value="Test Residual Analysis" onclick="runTestCase()" name="button3" type="button">
+          <div class="row">
+            <div class="col-12">
+              <input value="Test Residual Analysis" onclick="runTestCase()" name="button3" type="button">
+            </div>
+          </div>
+          <div class="row" style="padding-top: 35px;">
+            <div class="col-12">
+              <input value="Clear Data" onclick="clearData()" name="button3" type="button">
+            </div>
+          </div>
         </div>
       </div>
       <div class="row">
@@ -31,6 +40,16 @@
     <div class="col-3"></div>
   </div>
 
+
+  <div id="data-table-container" class="row">
+    <div class="col-3"></div>
+    <div class="col-6">
+      <table id="data-table">
+        <tr></tr>
+      </table>
+    </div>
+    <div class="col-3"></div>
+  </div>
 
   <!--<div class="container">-->
     <!--<div class="row">-->
