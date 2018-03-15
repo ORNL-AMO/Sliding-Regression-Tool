@@ -1,6 +1,5 @@
 var json;
 
-
 var N = 0;
 var maxN = 16;
 var M = 4;
@@ -320,7 +319,7 @@ function calc2(){
 
             console.log("The Fitted Model is :" + output);
 
-
+            fittedModel = output;
 
             for ( i = -1; i < N-1; i++)
             {
@@ -329,19 +328,21 @@ function calc2(){
 
                 for (j = 1; j <=M; j++) y +=regrCoeff[j]*X[j][i+1];
 
-                console.log("Predicted Y Value " + i + ": " + roundSigDig(y, sigDig));
+                console.log("Predicted Y Value " + (i+2) + ": " + roundSigDig(y, sigDig));
 
                 predicted[i] = roundSigDig(y, sigDig);
 
                 residual[i] =  (Y[i+1] - predicted[i]);
 
                 console.log("ith Residual: " + "("+(i+2)+")"+ Math.round(residual[i]*Math.pow(10,4))/Math.pow(10,4)+"    ");
+
+                iResidual[i+1] = ("("+(i+2)+") "+ Math.round(residual[i]*Math.pow(10,4))/Math.pow(10,4)+"\t\t");
+
+
                 SE += residual[i];
                 ST += Y[i+1];
 
             }
-
-
 
 
             var MSE = 0;
@@ -368,6 +369,9 @@ function calc2(){
             FR = ((N-M-1)*(SST-SSE))/(M*SSE);
             console.log("F-Statistic: " + FR);
             console.log("R-Square: " + RRSQ);
+
+            rSquare = RRSQ;
+            fStatistic = FR;
 
 
         }
@@ -450,8 +454,11 @@ function calc2(){
         var mn1 = Math.round(10000000*mean1)/10000000;
         var mn2 = Math.round(10000000*mean2)/10000000;
         console.log("Mean: " + XE1);
+        mean_base = XE1;
         console.log("Mean: First Half: " + mn1);
+        mean_1 = mn1;
         console.log("Mean: Second Half: " + mn2);
+        mean_2 = mn2;
 
         //calculate Standard Deviation
         // Run through all the input, add those that have valid values
@@ -461,6 +468,7 @@ function calc2(){
         var V1 =StdE/(len-2);
         var Vari2 = Math.round(V1*10000000)/10000000;
         console.log("Variance : " + Vari2);
+        variance = Vari2;
         //Standard deviation for both parts
         var StdE1=0;
         var StdE2=0;
@@ -473,9 +481,11 @@ function calc2(){
         var VR1 = StdE1/(NE1-2);
         var var1 = Math.round(10000000*VR1)/10000000;
         console.log("Variance: The First Half: " + var1);
+        vari1 = var1;
         var VR2 = StdE2/(NE2-2);
         var var2 = Math.round(10000000*VR2)/10000000;
         console.log("Variance: The Second Half: " + var2);
+        vari2 = var2;
 
         //AUTO CORRELATIONS
         var listA = new Array();
@@ -526,6 +536,7 @@ function calc2(){
         var R1 = covarAB / Math.sqrt(varA*varB);
         var R11 = Math.round(10000000*R1)/10000000;
         console.log("First Order Serial-Correlation: " + R11);
+        firstO = R11;
         //******************
         var varA2 = 0;
         var varC = 0;
@@ -538,6 +549,7 @@ function calc2(){
         var R2 = covarA2C / Math.sqrt(varA2*varC);
         var R21 = Math.round(10000000*R2)/10000000;
         console.log("Second Order Serial-Correlation: " + R21);
+        secondO = R21;
 
 
 
@@ -560,8 +572,10 @@ function calc2(){
         var DW = DWNN/DWND;
         MAE = Math.round(MAE*100000)/100000;
         console.log("Mean Absolute Error: " + MAE);
+        meanAbsE = MAE;
         DW = Math.round(DW*100000)/100000;
         console.log("Durbin Watson Statistic: " + DW);
+        durbanWatson = DW;
 
         //NORMALITY
         var SUMF = 0;
@@ -677,17 +691,28 @@ function calc2(){
 
         //determine the conclusion
         if (t2N > D025)   {
-            console.log("Evidence against normality");     }
+            console.log("Evidence against normality");
+            normalityCond = "Evidence against normality";
+        }
         else if ((t2N <= D025) && (t2N > D05))  {
-            console.log("Sufficient evidence against normality");  }
+            console.log("Sufficient evidence against normality");
+            normalityCond = "Sufficient evidence against normality";
+        }
         else if ((t2N <= D05) && (t2N > D10))  {
-            console.log("Suggestive evidence against normality");      }
+            console.log("Suggestive evidence against normality");
+            normalityCond = "Suggestive evidence against normality";
+        }
         else if ((t2N <= D10) && (t2N > D15))  {
-            console.log("Little evidence against normality");  }
+            console.log("Little evidence against normality");
+            normalityCond = "Little evidence against normality";
+        }
         else if (t2N <=D15)  {
-            console.log("No evidences against normality"); }
+            console.log("No evidences against normality");
+            normalityCond = "No evidences against normality";
+        }
         else {
             console.log("Evidence against normality");
+            normalityCond = "Evidence against normality";
         }
 
 
