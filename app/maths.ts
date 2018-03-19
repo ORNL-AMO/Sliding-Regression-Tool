@@ -1,3 +1,4 @@
+
 function getCombinations(array) {
     const results = [[]];
     for (const value of array) {
@@ -43,9 +44,14 @@ function doRegression(json){
 
                 console.log(electricity);
                 console.log(variable);
+
                 // variable = sm.add_constant(var)
 
-                // model = sm.OLS(electricity, var).fit()
+                //Works for variable size of 1 independent
+                var modal = calc3(5, electricity, variable);
+
+                console.log(modal);
+                //model = sm.OLS(electricity, variable).fit()
                 // predictions = model.predict(var)
                 // result.append(
                 //     [df["Date"].iloc[j], model.rsquared, model.params['const'], model.params[v1], model.pvalues[v1]])
