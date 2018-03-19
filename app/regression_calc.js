@@ -285,6 +285,29 @@ function calc2(){
 
     var num = calc2.arguments[0];
     json = calc2.arguments[1];
+    var fittedModel;
+    var yValues;
+    var rSquare, fStatistic, mean, variance, mean_1, mean_2, vari1, vari2, firstO, secondO, durbanWatson, meanAbsE;
+    var normalityCond;
+    var iResidual = [];
+    var model = {
+        "fittedModal": "",
+        "yValues": "",
+        "rSquare": "",
+        "fStatistic": "",
+        "mean": "",
+        "variance": "",
+        "mean_1": "",
+        "mean_2": "",
+        "vari1": "",
+        "vari2": "",
+        "firstO": "",
+        "secondO": "",
+        "durbanWatson": "",
+        "meanAbsE": "",
+        "normalityCond": "",
+        "iResidual": ""
+    };
 
     if (num == 1)
     {
@@ -329,6 +352,8 @@ function calc2(){
                 for (j = 1; j <=M; j++) y +=regrCoeff[j]*X[j][i+1];
 
                 console.log("Predicted Y Value " + (i+2) + ": " + roundSigDig(y, sigDig));
+                model.yValues[i+2] = "Predicted Y Value " + (i+2) + ": " + roundSigDig(y, sigDig);
+
 
                 predicted[i] = roundSigDig(y, sigDig);
 
@@ -337,7 +362,7 @@ function calc2(){
                 console.log("ith Residual: " + "("+(i+2)+")"+ Math.round(residual[i]*Math.pow(10,4))/Math.pow(10,4)+"    ");
 
                 iResidual[i+1] = ("("+(i+2)+") "+ Math.round(residual[i]*Math.pow(10,4))/Math.pow(10,4)+"\t\t");
-
+                model.iResidual[i+1] = ("("+(i+2)+") "+ Math.round(residual[i]*Math.pow(10,4))/Math.pow(10,4)+"\t\t");
 
                 SE += residual[i];
                 ST += Y[i+1];
@@ -368,7 +393,9 @@ function calc2(){
 
             FR = ((N-M-1)*(SST-SSE))/(M*SSE);
             console.log("F-Statistic: " + FR);
+            model.fStatistic = FR;
             console.log("R-Square: " + RRSQ);
+            model.rSquare = RRSQ;
 
             rSquare = RRSQ;
             fStatistic = FR;
@@ -455,10 +482,13 @@ function calc2(){
         var mn2 = Math.round(10000000*mean2)/10000000;
         console.log("Mean: " + XE1);
         mean_base = XE1;
+        model.mean = XE1;
         console.log("Mean: First Half: " + mn1);
         mean_1 = mn1;
+        model.mean_1 = mn1;
         console.log("Mean: Second Half: " + mn2);
         mean_2 = mn2;
+        model.mean_2 = mn2;
 
         //calculate Standard Deviation
         // Run through all the input, add those that have valid values
@@ -469,6 +499,7 @@ function calc2(){
         var Vari2 = Math.round(V1*10000000)/10000000;
         console.log("Variance : " + Vari2);
         variance = Vari2;
+        model.variance = Vari2;
         //Standard deviation for both parts
         var StdE1=0;
         var StdE2=0;
@@ -482,10 +513,12 @@ function calc2(){
         var var1 = Math.round(10000000*VR1)/10000000;
         console.log("Variance: The First Half: " + var1);
         vari1 = var1;
+        model.vari1 = var1;
         var VR2 = StdE2/(NE2-2);
         var var2 = Math.round(10000000*VR2)/10000000;
         console.log("Variance: The Second Half: " + var2);
         vari2 = var2;
+        model.vari2 = var2;
 
         //AUTO CORRELATIONS
         var listA = new Array();
@@ -537,6 +570,7 @@ function calc2(){
         var R11 = Math.round(10000000*R1)/10000000;
         console.log("First Order Serial-Correlation: " + R11);
         firstO = R11;
+        model.firstO = R11;
         //******************
         var varA2 = 0;
         var varC = 0;
@@ -550,7 +584,7 @@ function calc2(){
         var R21 = Math.round(10000000*R2)/10000000;
         console.log("Second Order Serial-Correlation: " + R21);
         secondO = R21;
-
+        model.secondO = R21;
 
 
         var ERR = residual[-1];
@@ -573,9 +607,11 @@ function calc2(){
         MAE = Math.round(MAE*100000)/100000;
         console.log("Mean Absolute Error: " + MAE);
         meanAbsE = MAE;
+        model.meanAbsE = MEA;
         DW = Math.round(DW*100000)/100000;
         console.log("Durbin Watson Statistic: " + DW);
         durbanWatson = DW;
+        model.durbanWatson = DW;
 
         //NORMALITY
         var SUMF = 0;
@@ -693,26 +729,32 @@ function calc2(){
         if (t2N > D025)   {
             console.log("Evidence against normality");
             normalityCond = "Evidence against normality";
+            model.normalityCond = "Evidence against normality";
         }
         else if ((t2N <= D025) && (t2N > D05))  {
             console.log("Sufficient evidence against normality");
             normalityCond = "Sufficient evidence against normality";
+            model.normalityCond = "Sufficient evidence against normality";
         }
         else if ((t2N <= D05) && (t2N > D10))  {
             console.log("Suggestive evidence against normality");
             normalityCond = "Suggestive evidence against normality";
+            model.normalityCond = "Suggestive evidence against normality";
         }
         else if ((t2N <= D10) && (t2N > D15))  {
             console.log("Little evidence against normality");
             normalityCond = "Little evidence against normality";
+            model.normalityCond = "Little evidence against normality";
         }
         else if (t2N <=D15)  {
             console.log("No evidences against normality");
             normalityCond = "No evidences against normality";
+            model.normalityCond = "No evidences against normality";
         }
         else {
             console.log("Evidence against normality");
             normalityCond = "Evidence against normality";
+            model.normalityCond = "Evidence against normality";
         }
 
 

@@ -197,6 +197,7 @@ function calcENPI(){
 
     fillDataBoxs();
     fillDataTable(formatted_json);
+    doRegression(formatted_json)
 }
 
 function fillDataBoxs(){
@@ -269,6 +270,8 @@ function runTestCase(){
     calc2(5, testJson);
     fillDataBoxs();
     fillDataTable(testJson);
+
+    doRegression(testJson);
 }
 
 function clearData(){
@@ -289,6 +292,6 @@ function clearData(){
     document.getElementById("mean-abs-error").textContent = "";
     document.getElementById("normality").textContent = "";
     document.getElementById("i-residual").textContent = "";
-
 }
+
 
