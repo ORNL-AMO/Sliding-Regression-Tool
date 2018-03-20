@@ -191,28 +191,28 @@ function calcENPI(){
 
     reg_model = calc2(5, formatted_json);
 
-    fillDataBoxs();
+    fillDataBoxs(reg_model);
     fillDataTable(formatted_json);
     doRegression(formatted_json)
 }
 
-function fillDataBoxs(){
+function fillDataBoxs(json){
 
-    document.getElementById("fitted-model").textContent = reg_model.fittedModel;
-    document.getElementById("r-square").textContent = reg_model.rSquare;
-    document.getElementById("f-statistic").textContent = reg_model.fStatistic;
-    document.getElementById("mean").textContent = reg_model.mean_base;
-    document.getElementById("variance").textContent = reg_model.variance;
-    document.getElementById("mean-1").textContent = reg_model.mean_1;
-    document.getElementById("mean-2").textContent = reg_model.mean_2;
-    document.getElementById("var-1").textContent = reg_model.vari1;
-    document.getElementById("var-2").textContent = reg_model.vari2;
-    document.getElementById("first-order").textContent = reg_model.firstO;
-    document.getElementById("second-order").textContent = reg_model.secondO;
-    document.getElementById("durbin-watson").textContent = reg_model.durbanWatson;
-    document.getElementById("mean-abs-error").textContent = reg_model.meanAbsE;
-    document.getElementById("normality").textContent = reg_model.normalityCond;
-    document.getElementById("i-residual").textContent = reg_model.iResidual;
+    document.getElementById("fitted-model").textContent = json.fittedModal;
+    document.getElementById("r-square").textContent = json.rSquare;
+    document.getElementById("f-statistic").textContent = json.fStatistic;
+    document.getElementById("mean").textContent = json.mean_base;
+    document.getElementById("variance").textContent = json.variance;
+    document.getElementById("mean-1").textContent = json.mean_1;
+    document.getElementById("mean-2").textContent = json.mean_2;
+    document.getElementById("var-1").textContent = json.vari1;
+    document.getElementById("var-2").textContent = json.vari2;
+    document.getElementById("first-order").textContent = json.firstO;
+    document.getElementById("second-order").textContent = json.secondO;
+    document.getElementById("durbin-watson").textContent = json.durbanWatson;
+    document.getElementById("mean-abs-error").textContent = json.meanAbsE;
+    document.getElementById("normality").textContent = json.normalityCond;
+    document.getElementById("i-residual").textContent = json.iResidual;
 }
 
 function fillDataTable(json){
@@ -263,8 +263,8 @@ function fillDataTable(json){
 
 function runTestCase(){
     clearData();
-    calc2(5, testJson);
-    fillDataBoxs();
+    reg_model = calc2(5, testJson);
+    fillDataBoxs(reg_model);
     fillDataTable(testJson);
 
     doRegression(testJson);
