@@ -16,11 +16,19 @@ html, body {
     padding-top: 30px;
 }
 
+#graph-col {
+    align-content: center;
+}
+
 #data-table-container{
     text-align: center;
     align-content: center;
     align-items: center;
     padding-top: 30px;
+}
+
+#data-table-col {
+    overflow-x: scroll;
 }
 
 #dropZone {
@@ -38,7 +46,6 @@ html, body {
 }
 
 #dragAndDropArrow {
-    position: absolute;
     font-size: 30px;
 }
 
@@ -46,7 +53,39 @@ html, body {
     padding-top: 50px;
 }
 
-.box-right{
+#calculate-btn-row {
+    text-align: center;
+    align-content: center;
+    align-items: center;
+    padding-top: 30px;
+}
+
+#calculate-btn-col {
+    align-content: center;
+}
+
+#calculate-btn {
+    font-size: 25px;
+    background-color: #14c718;
+    color: white;
+    border-radius: 6px;
+    border: 0px;
+    border-top: none;
+    border-bottom: 3px solid #838383;
+}
+
+#calculate-btn:focus {
+    outline: none !important;
+}
+
+#calculate-btn:active {
+    outline: none !important;
+    background-color: #12b416;
+    border-top: 3px solid #ffffff;
+    border-bottom: none;
+}
+
+.box-right {
     border-right: 1px solid #686868;
 }
 
@@ -68,4 +107,29 @@ td, th {
 
 tr:nth-child(even) {
     background-color: #dddddd;
+}
+
+.selector {
+    background-color: #9b9b9b;
+    color: white;
+    border-radius: 4px;
+    text-align: center;
+    height: 30px;
+    border-top: none;
+    border-bottom: 2px solid #2f2f2f;
+}
+
+.selector:focus {
+    outline: none !important;
+    background-color: #7a7a7a;
+    border-top: 2px solid #2f2f2f;
+    border-bottom: none;
+}
+
+#type-row {
+    border-bottom: 2px solid #747474;
+}
+
+#title-row {
+    background-color: white;
 }
