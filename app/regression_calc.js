@@ -769,6 +769,9 @@ function calc2(){
 
 function calc3(num, dependent, independent){
 
+    console.log(dependent);
+    console.log(independent);
+
     var model = {
         fittedModal: "",
         params: [],

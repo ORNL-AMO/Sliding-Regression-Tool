@@ -15,7 +15,7 @@ const testJson = {
             '2005-12-01'
         ]
     },
-    dependent: {
+    values: {
         Electricity: [
             6075.318831,
             5768.226051,
@@ -43,9 +43,7 @@ const testJson = {
             1632.825,
             1960.825,
             2656.799
-        ]
-    },
-    independent: {
+        ],
         Production: [
             109.5382382292,
             103.9349541867,
@@ -104,6 +102,7 @@ var rABS = true; // true: readAsBinaryString ; false: readAsArrayBuffer
 var raw_json;
 var formatted_json = {};
 var display_json = {};
+var types = [];
 
 // Get file data on drop
 dropZone.addEventListener('drop', function handleDrop(e) {
@@ -118,7 +117,7 @@ dropZone.addEventListener('drop', function handleDrop(e) {
         /* DO SOMETHING WITH workbook HERE */
         raw_json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {raw:false, header:1});
 
-        formatJson();
+        formatDisplayJson();
     };
     if(rABS) reader.readAsBinaryString(f); else reader.readAsArrayBuffer(f);
 
@@ -126,7 +125,7 @@ dropZone.addEventListener('drop', function handleDrop(e) {
 
 });
 
-function formatJson(){
+function formatDisplayJson(){
 
     // for(var i = 0; i < raw_json[0].length; i++){
     //     formatted_json[raw_json[0][i]] = [];
@@ -139,6 +138,57 @@ function formatJson(){
     //     }
     // }
 
+    display_json["date"];
+    display_json["values"];
+
+    for(var i = 0; i < raw_json[0].length; i++){
+        if(i == 0){
+            display_json["date"] = [];
+        }
+        else {
+            display_json["values"] = [];
+        }
+    }
+
+    for(var i = 0; i < raw_json[0].length; i++){
+        if(i == 0){
+            display_json["date"][raw_json[0][i]] = [];
+        }
+        else{
+            display_json["values"][raw_json[0][i]] = [];
+        }
+    }
+
+    for( var i = 0; i < raw_json.length-1; i++) {
+        for (var j = 0; j < raw_json[0].length; j++) {
+            if(j == 0){
+                display_json["date"][raw_json[0][j]][i] = [raw_json[i+1][j]];
+            }
+            else{
+                display_json["values"][raw_json[0][j]][i] = [raw_json[i+1][j]];
+            }
+        }
+    }
+
+
+    setupENPI();
+}
+
+function reformatJson(){
+
+    // for(var i = 0; i < raw_json[0].length; i++){
+    //     formatted_json[raw_json[0][i]] = [];
+    // }
+    //
+    //
+    // for( var i = 0; i < raw_json.length-1; i++) {
+    //     for (var j = 0; j < raw_json[0].length; j++) {
+    //         formatted_json[raw_json[0][j]][i] = raw_json[i+1][j];
+    //     }
+    // }
+
+    getTypes();
+
     formatted_json["date"];
     formatted_json["dependent"];
     formatted_json["independent"];
@@ -147,10 +197,10 @@ function formatJson(){
         if(i == 0){
             formatted_json["date"] = [];
         }
-        else if(i < 3){
+        else if(types[i] == "Dependent"){
             formatted_json["dependent"]= [];
         }
-        else{
+        else if(types[i] == "Independent"){
             formatted_json["independent"] = [];
         }
     }
@@ -159,10 +209,10 @@ function formatJson(){
         if(i == 0){
             formatted_json["date"][raw_json[0][i]] = [];
         }
-        else if(i < 3){
+        else if(types[i] == "Dependent"){
             formatted_json["dependent"][raw_json[0][i]] = [];
         }
-        else{
+        else if( types[i] == "Independent"){
             formatted_json["independent"][raw_json[0][i]] = [];
         }
     }
@@ -172,29 +222,66 @@ function formatJson(){
             if(j == 0){
                 formatted_json["date"][raw_json[0][j]][i] = [raw_json[i+1][j]];
             }
-            else if(j < 3){
+            else if(types[j] == "Dependent"){
                 formatted_json["dependent"][raw_json[0][j]][i] = [raw_json[i+1][j]];
             }
-            else{
+            else if(types[j] == "Independent"){
                 formatted_json["independent"][raw_json[0][j]][i] = [raw_json[i+1][j]];
             }
         }
     }
+}
 
-    calcENPI();
+function getTypes(){
+
+    types = [];
+
+    var typeElements = document.getElementsByClassName("selector");
+
+    //For Dates
+    types[0] = "None";
+
+    for(var i = 1; i < typeElements.length+1; i++){
+        types[i] = typeElements[i-1].value;
+    }
 }
 
 var reg_model = {};
 
-function calcENPI(){
+function setupENPI(){
     clearData();
 
-    reg_model = calc2(5, formatted_json);
+    //reg_model = calc2(5, formatted_json);
 
-    fillDataBoxs(reg_model);
-    fillDataTable(formatted_json);
-    doRegression(formatted_json)
+    //fillDataBoxs(reg_model);
+    fillDataTable(display_json);
+    //doRegression(formatted_json)
 }
+
+function calcENPI(){
+
+    var numberOfDependents = 0;
+    var numberOfIndependents = 0;
+
+    for(var i = 0; i < types.length; i++){
+        if(types[i] == "Dependent"){
+            numberOfDependents++;
+        }
+        else if(types[i] == "Independent"){
+            numberOfIndependents++;
+        }
+    }
+
+    if(numberOfDependents > 0 && numberOfIndependents > 0) {
+        reformatJson();
+        doRegression(formatted_json)
+    }
+    else{
+        console.log("Not enough of a variable type");
+    }
+}
+
+
 
 function fillDataBoxs(json){
 
@@ -217,57 +304,67 @@ function fillDataBoxs(json){
 
 function fillDataTable(json){
 
+
     var dataTable = document.getElementById("data-table");
     var firstRow = dataTable.insertRow(0);
 
-    var independentKeys = Object.keys(json.independent);
-    var dependentKeys = Object.keys(json.dependent);
+    var valueKeys = Object.keys(json.values);
 
-    for(var i = 0; i < Object.keys(json.independent).length; i++){
-        var newCol = firstRow.insertCell(0);
-        newCol.innerHTML = ("<strong>"+independentKeys[i]+"</strong>");
-        //newCol.innerHTML = json["independent"][independentKeys[i]];
+    for(var i = 0; i < json.date.Date.length; i++){
+        var newRow = dataTable.insertRow(i);
+
+        for(var j = Object.keys(json.values).length-1; j >= 0; j--){
+            var newCol = newRow.insertCell(0);
+            newCol.innerHTML = json["values"][valueKeys[j]][i];
+            newCol.style.textAlign = "center";
+            //newCol.innerHTML = json["independent"][independentKeys[i]];
+        }
+        //Date should only have one col
+        var newCol = newRow.insertCell(0);
+        newCol.innerHTML = json["date"][Object.keys(json.date)][i];
+        newCol.style.textAlign = "center";
     }
 
-    for(var i = 0; i < Object.keys(json.dependent).length; i++){
+    firstRow = dataTable.insertRow(0);
+    firstRow.id = "title-row";
+
+    for(var i = Object.keys(json.values).length-1; i >= 0; i--){
         var newCol = firstRow.insertCell(0);
-        newCol.innerHTML =("<strong>"+ dependentKeys[i]+"</strong>");
+        newCol.innerHTML = ("<strong>"+valueKeys[i]+"</strong>");
+        newCol.style.textAlign = "center";
     }
 
     //Date should only have one col
     var newCol = firstRow.insertCell(0);
     newCol.innerHTML = ("<strong>"+Object.keys(json.date)[0]+"</strong>");
+    newCol.style.textAlign = "center";
 
-    for(var i = 1; i < json.date.Date.length; i++){
-        var newRow = dataTable.insertRow(i);
+    firstRow = dataTable.insertRow(0);
+    firstRow.id = "type-row";
 
-
-
-        for(var j = 0; j < Object.keys(json.independent).length; j++){
-            var newCol = newRow.insertCell(0);
-            newCol.innerHTML = json["independent"][independentKeys[j]][i];
-            //newCol.innerHTML = json["independent"][independentKeys[i]];
+    for(var i = 0; i < (Object.keys(json.values).length+1); i++){
+        var newCol = firstRow.insertCell(0);
+        if(i != (Object.keys(json.values).length)) {    //No option for Date
+            newCol.innerHTML = ("<select name=\"\" class=\"selector\" onchange=\"getTypes()\">\n" +
+                                "    <option value=\"None\">None</option>\n" +
+                                "    <option value=\"Dependent\">Dependent</option>\n" +
+                                "    <option value=\"Independent\">Independent</option>\n" +
+                                "  </select>");
+            newCol.style.textAlign = "center";
+            //newCol.style.textAlign = "center";
         }
-
-
-        for(var j = 0; j < Object.keys(json.dependent).length; j++){
-            var newCol = newRow.insertCell(0);
-            newCol.innerHTML = json["dependent"][dependentKeys[j]][i];
-        }
-
-        //Date should only have one col
-        var newCol = newRow.insertCell(0);
-        newCol.innerHTML = json["date"][Object.keys(json.date)][i];
     }
+
 }
 
 function runTestCase(){
     clearData();
-    reg_model = calc2(5, testJson);
-    fillDataBoxs(reg_model);
+    //reg_model = calc2(5, testJson);
+    //fillDataBoxs(reg_model);
     fillDataTable(testJson);
+    getTypes();
 
-    doRegression(testJson);
+    //doRegression(testJson);
 }
 
 function clearData(){

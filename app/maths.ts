@@ -16,6 +16,7 @@ function doRegression(json){
 
     var independentKeys = Object.keys(json.independent);
     var dependentKeys = Object.keys(json.dependent);
+    var dateKeys = Object.keys(json.date);
 
     Object.keys(json.independent).forEach(function(key, index) {
         independents.push(key);
@@ -50,10 +51,8 @@ function doRegression(json){
             //     independentCombinations[i][k] + " p-value " + i];
         }
 
-        console.log(results);
-
         for(var j = 0; j < (rows - 11); j++) {
-            var electricity = json.dependent.Electricity.slice(j, j + 12);
+            var electricity = json.dependent[dependentKeys[0]].slice(j, j + 12);
             var independentVariables = [];
 
             for(var k = 0; k < independentCombinations[i].length; k++){
@@ -62,9 +61,7 @@ function doRegression(json){
 
             var model = calc3(5, electricity, independentVariables);
 
-            console.log(model);
-
-            results.Date[j] = json.date.Date[j];
+            results.Date[j] = json.date[dateKeys[0]][j];
             results["rSquare" + i][j] = model.rSquare;
 
             for(var n = 0; n < independentCombinations[i].length; n++){

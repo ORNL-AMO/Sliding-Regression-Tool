@@ -6,17 +6,19 @@
   <link rel="stylesheet" href="fontawesome-free-5.0.8/web-fonts-with-css/css/fontawesome-all.css">
   <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
 
+  <script src="node_modules/less/dist/less.js"></script>
   <script src="node_modules/d3/build/d3.min.js"></script>
   <script src="node_modules/jquery/dist/jquery.min.js"></script>
   <script src="node_modules/xlsx/dist/shim.min.js"></script>
   <script src="node_modules/xlsx/dist/xlsx.full.min.js"></script>
   <script src="node_modules/d3/build/d3.min.js"></script>
 
+
 </head>
 <body>
   <div class="row">
-    <div class="col-3"></div>
-    <div id="drop-container" class="col-6">
+    <div class="col-2"></div>
+    <div id="drop-container" class="col-8">
       <div class="row" style="padding-bottom: 25px;">
         <div class="col-12">
           <div class="row">
@@ -37,30 +39,30 @@
         </div>
       </div>
     </div>
-    <div class="col-3"></div>
+    <div class="col-2"></div>
   </div>
 
-
   <div id="data-table-container" class="row">
-    <div class="col-3"></div>
-    <div class="col-6">
+    <div class="col-2"></div>
+    <div id="data-table-col" class="col-8">
       <table id="data-table">
         <tr></tr>
       </table>
     </div>
-    <div class="col-3"></div>
+    <div class="col-2"></div>
   </div>
 
-  <!--<div class="container">-->
-    <!--<div class="row">-->
-        <!--<div id="tableGoesHere" class="col-md-6">-->
-      <!--</div>&lt;!&ndash; col &ndash;&gt;-->
-    <!--</div>&lt;!&ndash; /row &ndash;&gt;-->
-  <!--</div>&lt;!&ndash; container &ndash;&gt;-->
+  <div id="calculate-btn-row" class="row">
+    <div class="col-2"></div>
+    <div id="calculate-btn-col" class="col-8">
+      <button id="calculate-btn" type="button" onclick="calcENPI()">Calculate</button>
+    </div>
+    <div class="col-2"></div>
+  </div>
 
   <div id="info-row" class="row">
-    <div class="col-3"></div>
-    <div class="col-6">
+    <div class="col-2"></div>
+    <div class="col-8">
       <table>
         <tr>
           <th colspan="4" style="text-align: center;">Regression Information</th>
@@ -121,15 +123,15 @@
         </tr>
       </table>
     </div>
-    <div class="col-3"></div>
+    <div class="col-2"></div>
   </div>
 
   <div id="graph-container" class="row">
-    <div class="col-3"></div>
-    <div class="col-6">
+    <div class="col-2"></div>
+    <div id="graph-col" class="col-8">
       <div id="graph"></div>
     </div>
-    <div class="col-3"></div>
+    <div class="col-2"></div>
   </div>
 
 

@@ -23,6 +23,7 @@
     "excel-as-json": "^2.0.1",
     "font-awesome": "^4.7.0",
     "jquery": "^3.3.1",
+    "less": "^3.0.1",
     "ng2-bootstrap-modal": "^1.0.1",
     "ng2-toasty": "^4.0.2",
     "rxjs": "^5.5.6",
