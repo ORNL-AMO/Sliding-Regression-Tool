@@ -786,6 +786,7 @@ function calc3(num, dependent, independent){
         durbanWatson: "",
         meanAbsE: "",
         normalityCond: "",
+        intercept: "",
         iResidual: []
     };
 
@@ -813,6 +814,7 @@ function calc3(num, dependent, independent){
             var predicted = new Array;
             var residual = new Array;
             var output = "Y = " + roundSigDig(regrCoeff[0], sigDig);
+            model.intercept = regrCoeff[0];
             var SE = 0;
             var ST = 0;
 
