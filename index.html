@@ -16,23 +16,17 @@
 
 </head>
 <body>
-  <div class="row">
+
+  <div id="alert-box-row" class="row">
+    <div class="col-2"></div>
+      <div id="alert-box" class="col-8"></div>
+    <div class="col-2"></div>
+  </div>
+
+
+  <div id="drop-container-row" class="row">
     <div class="col-2"></div>
     <div id="drop-container" class="col-8">
-      <div class="row" style="padding-bottom: 25px;">
-        <div class="col-12">
-          <div class="row">
-            <div class="col-12">
-              <!--<input value="Test Residual Analysis" onclick="runTestCase()" name="button3" type="button">-->
-            </div>
-          </div>
-          <div class="row" style="padding-top: 35px;">
-            <div class="col-12">
-              <input value="Clear Data" onclick="clearData()" name="button3" type="button">
-            </div>
-          </div>
-        </div>
-      </div>
       <div class="row">
         <div class="col-12">
           <div id="dropZone"><p id="dragAndDropText">Drag and Drop Excel Data Here</p><i id="dragAndDropArrow" class="fas fa-arrow-alt-circle-down"></i></div>
@@ -40,6 +34,12 @@
       </div>
     </div>
     <div class="col-2"></div>
+  </div>
+
+  <div id="filename-display-row" class="row">
+    <div class="col-12">
+      <div id="filename-display"></div>
+    </div>
   </div>
 
   <div id="data-table-container" class="row">
@@ -55,7 +55,7 @@
   <div id="calculate-btn-row" class="row">
     <div class="col-2"></div>
     <div id="calculate-btn-col" class="col-8">
-      <button id="calculate-btn" type="button" onclick="calcENPI()">Calculate</button>
+      <button id="calculate-btn" type="button" onclick="calcENPI()" disabled>Calculate</button>
     </div>
     <div class="col-2"></div>
   </div>
@@ -134,8 +134,14 @@
     <div class="col-2"></div>
   </div>
 
+  <div class="row" style="padding-top: 35px;">
+    <div id="clear-col" class="col-12">
+      <input id="clear-btn" value="Clear Data" onclick="clearData()" name="button3" type="button">
+    </div>
+  </div>
 
 </body>
+
   <script src="app/maths.ts"></script>
   <script src="app/regression_calc.js"></script>
   <script src="app/enpi_tool.js"></script>

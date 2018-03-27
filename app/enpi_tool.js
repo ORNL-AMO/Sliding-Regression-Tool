@@ -103,26 +103,26 @@ var raw_json;
 var formatted_json = {};
 var display_json = {};
 var types = [];
+var fileName = "";
 
 // Get file data on drop
 dropZone.addEventListener('drop', function handleDrop(e) {
     e.stopPropagation(); e.preventDefault();
     var files = e.dataTransfer.files, f = files[0];
+
+    fileName = files[0].name;
+
     var reader = new FileReader();
     reader.onload = function(e) {
         var data = e.target.result;
         if(!rABS) data = new Uint8Array(data);
         var wb = XLSX.read(data, {type: rABS ? 'binary' : 'array'});
-
         /* DO SOMETHING WITH workbook HERE */
         raw_json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {raw:false, header:1});
 
         formatDisplayJson();
     };
     if(rABS) reader.readAsBinaryString(f); else reader.readAsArrayBuffer(f);
-
-
-
 });
 
 function formatDisplayJson(){
@@ -230,6 +230,8 @@ function reformatJson(){
             }
         }
     }
+
+    console.log(formatted_json);
 }
 
 function getTypes(){
@@ -244,6 +246,52 @@ function getTypes(){
     for(var i = 1; i < typeElements.length+1; i++){
         types[i] = typeElements[i-1].value;
     }
+
+    var numberOfDependents = 0;
+    var numberOfIndependents = 0;
+
+    for(var i = 0; i < types.length; i++){
+        if(types[i] == "Dependent"){
+            numberOfDependents++;
+        }
+        else if(types[i] == "Independent"){
+            numberOfIndependents++;
+        }
+    }
+
+    if(numberOfDependents == 0 && numberOfIndependents == 0){
+        var alert = document.getElementById("alert-box");
+        alert.innerHTML = "<strong>Alert</strong>" +
+                          "<br>" +
+                          "You do not have enough Dependent or Independent columns";
+        alert.style.display = "inline";
+        document.getElementById("alert-box-row").style.paddingTop = "30px";
+        document.getElementById("calculate-btn").disabled = true;
+    }
+    else if(numberOfDependents == 0){
+        var alert = document.getElementById("alert-box");
+        alert.innerHTML = "<strong>Alert</strong>" +
+            "<br>" +
+            "You do not have enough Dependent columns";
+        alert.style.display = "inline";
+        document.getElementById("alert-box-row").style.paddingTop = "30px";
+        document.getElementById("calculate-btn").disabled = true;
+    }
+    else if(numberOfIndependents == 0){
+        var alert = document.getElementById("alert-box");
+        alert.innerHTML = "<strong>Alert</strong>" +
+            "<br>" +
+            "You do not have enough Independent columns";
+        alert.style.display = "inline";
+        document.getElementById("alert-box-row").style.paddingTop = "30px";
+        document.getElementById("calculate-btn").disabled = true;
+    }
+    else{
+        document.getElementById("alert-box").style.display = "none";
+        document.getElementById("alert-box-row").style.paddingTop = "0px";
+        document.getElementById("calculate-btn").disabled = false;
+    }
+
 }
 
 var reg_model = {};
@@ -281,8 +329,6 @@ function calcENPI(){
     }
 }
 
-
-
 function fillDataBoxs(json){
 
     document.getElementById("fitted-model").textContent = json.fittedModal;
@@ -304,6 +350,11 @@ function fillDataBoxs(json){
 
 function fillDataTable(json){
 
+    var nameDisplay = document.getElementById("filename-display");
+    nameDisplay.innerHTML = "<strong>" + fileName + "</strong>";
+    nameDisplay.style.display = "block";
+
+    document.getElementById("filename-display-row").style.paddingTop = "50px";
 
     var dataTable = document.getElementById("data-table");
     var firstRow = dataTable.insertRow(0);
@@ -355,6 +406,9 @@ function fillDataTable(json){
         }
     }
 
+    document.getElementById("calculate-btn").style.display = "inline";
+    document.getElementById("calculate-btn-row").style.paddingTop = "30px"
+    getTypes();
 }
 
 function runTestCase(){
@@ -385,6 +439,13 @@ function clearData(){
     document.getElementById("mean-abs-error").textContent = "";
     document.getElementById("normality").textContent = "";
     document.getElementById("i-residual").textContent = "";
+
+    var nameDisplay = document.getElementById("filename-display");
+    nameDisplay.innerHTML = "";
+    nameDisplay.style.display = "none";
+
+    document.getElementById("filename-display-row").style.paddingTop = "0px";
+
 }
 
 
