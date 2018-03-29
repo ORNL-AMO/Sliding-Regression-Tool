@@ -230,8 +230,6 @@ function reformatJson(){
             }
         }
     }
-
-    console.log(formatted_json);
 }
 
 function getTypes(){
@@ -291,7 +289,6 @@ function getTypes(){
         document.getElementById("alert-box-row").style.paddingTop = "0px";
         document.getElementById("calculate-btn").disabled = false;
     }
-
 }
 
 var reg_model = {};
@@ -322,10 +319,42 @@ function calcENPI(){
 
     if(numberOfDependents > 0 && numberOfIndependents > 0) {
         reformatJson();
-        doRegression(formatted_json)
-    }
-    else{
-        console.log("Not enough of a variable type");
+        var table = doRegression(formatted_json);
+
+        var energySelector = document.getElementById("energy-selector");
+        energySelector.innerHTML = "";
+
+        for(var i = 0; i < types.length; i++){
+            if(types[i] == "Dependent") {
+                energySelector.innerHTML += "<option value=" + raw_json[0][i] + ">" + raw_json[0][i] + "</option>";
+                energySelector.style.width = "";
+                energySelector.disabled = false;
+                energySelector.title = "";
+            }
+        }
+
+        var modelYearSelector = document.getElementById("model-year-selector");
+        modelYearSelector.innerHTML = "";
+
+        for(var i = 0; i < (formatted_json["date"][Object.keys(formatted_json.date)].length-11); i++) {
+            modelYearSelector.innerHTML += "<option value="+i+">" + formatted_json["date"][Object.keys(formatted_json.date)][i] + "</option>";
+        }
+
+        var models = document.getElementById("model-selector");
+        models.innerHTML = "";
+
+        for(var i = 0; i < table.combinations.length; i++){
+            var combinationStr = "";
+            for(var j = 0; j < table.combinations[i].length; j++){
+                combinationStr += table.combinations[i][j];
+                if(j != (table.combinations[i].length-1)){
+                    combinationStr += " / ";
+                }
+            }
+            models.innerHTML += "<option value=" + i + ">" + combinationStr + "<option>";
+        }
+
+        document.getElementById("model-selection-row").style.display = "inline";
     }
 }
 
@@ -405,12 +434,12 @@ function fillDataTable(json){
             //newCol.style.textAlign = "center";
         }
     }
-
     firstRow.style.backgroundColor = "white";
 
     document.getElementById("calculate-btn").style.display = "inline";
     document.getElementById("calculate-btn-row").style.paddingTop = "30px";
     document.getElementById("data-table-div").style.height = "500px";
+
     getTypes();
 }
 

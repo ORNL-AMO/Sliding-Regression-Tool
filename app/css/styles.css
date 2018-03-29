@@ -174,6 +174,47 @@ tr:nth-child(odd) {
     border-bottom: none;
 }
 
+.selector:disabled {
+    background-color: #dfdfdf;
+    color: white;
+    border-radius: 4px;
+    text-align: center;
+    height: 30px;
+    border-top: none;
+    border-bottom: 2px solid #9f9f9f;
+    cursor: not-allowed;
+}
+
+
+
+.model-selector {
+    background-color: #9b9b9b;
+    color: white;
+    border-radius: 4px;
+    text-align: center;
+    height: 30px;
+    border-top: none;
+    border-bottom: 2px solid #2f2f2f;
+}
+
+.model-selector:focus {
+    outline: none !important;
+    background-color: #7a7a7a;
+    border-top: 2px solid #e3e3e3;
+    border-bottom: none;
+}
+
+.model-selector:disabled {
+    background-color: #dfdfdf;
+    color: white;
+    border-radius: 4px;
+    text-align: center;
+    height: 30px;
+    border-top: none;
+    border-bottom: 2px solid #9f9f9f;
+    cursor: not-allowed;
+}
+
 #type-row {
     border-bottom: 2px solid #747474;
 }
@@ -204,3 +245,39 @@ tr:nth-child(odd) {
     text-align: center;
     font-size: 20px;
 }
+
+#model-selection-row {
+    padding-top: 30px;
+    display: none;
+}
+
+#model-selection-container {
+    background-color: #e3e3e3;
+    padding-bottom: 20px;
+}
+
+#model-selection-title-row {
+}
+
+#model-selection-title-container {
+    background-color: #e3e3e3;
+    padding-bottom: 20px;
+}
+
+#model-selection-title {
+    text-align: center;
+    font-size: 22px;
+}
+
+#model-year-selector {
+}
+
+#model-number-selection {
+    width: 150px;
+}
+
+
+
+
+
+

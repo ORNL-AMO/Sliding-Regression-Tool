@@ -10,7 +10,15 @@ function getCombinations(array) {
     return results.slice(1);
 }
 
+
+
 function doRegression(json){
+
+    var table = {
+        combinations: [],
+        results: [],
+        savings: []
+    }
 
     var independents = [];
 
@@ -23,7 +31,8 @@ function doRegression(json){
     });
 
     var independentCombinations = getCombinations(independents);
-    //console.log(independentCombinations);
+
+    table.combinations = independentCombinations;
 
     var rows = json.date.Date.length;
     var col = independentCombinations.length;
@@ -49,8 +58,6 @@ function doRegression(json){
 
             results[independentCombinations[i][k] + "Coeff" + i] = [];
             results[independentCombinations[i][k] + "pvalue" + i] = [];
-            // , "Intercept " + i, independentCombinations[i][k] + " Co-eff " + i,
-            //     independentCombinations[i][k] + " p-value " + i];
         }
 
         for(var j = 0; j < (rows - 11); j++) {
@@ -61,13 +68,8 @@ function doRegression(json){
                 independentVariables[k] = json.independent[independentCombinations[i][k]].slice(j, j + 12);
             }
             var model = calc3(5, electricity, independentVariables);
-            //console.log(electricity);
-            //console.log(independentVariables);
-            //console.log("///////////////////////////////////////////////////");
 
             results.Date[j] = json.date[dateKeys[0]][j];
-
-            //console.log(model);
 
             results["rSquare" + i][j] = model.rSquare;
             results["Intercept" + i][j] = model.intercept;
@@ -77,16 +79,14 @@ function doRegression(json){
                 results[independentCombinations[i][n] + "pvalue" + i][j] = "p Value of " + independentCombinations[i][n];
             }
 
-            // console.log("Date: " + json.date.Date[j] + "\t" + model.rSquare + "\t" + model.fittedModal + "\t" + model.params[0]
-            //             + "\tP Value: ?\t");
 
-            //Defining a
-            //df_temp = pd.DataFrame(data=result, columns=result_title)
         }
 
         totalResult[i] = results;
-
     }
+
+    table.results = totalResult;
+
 
     ///////////#####STEP 2 - FINDING MODELS THAT PASS AND THOSE THAT FAIL######/////////////////
     //TODO
@@ -99,7 +99,7 @@ function doRegression(json){
     //# Lets fix the base year to be first 12 months for the initial version of the tool.
 
     var model_year = "2006-01-01";
-    var year = 12;
+    var year = document.getElementById("model-year-selector").value;
     var model = 6;
     var savings = [];
 
@@ -134,8 +134,8 @@ function doRegression(json){
         savings["%Savings"][i] = 1 - ((savings["Total Model Elect"][0] * savings["Total Actual Elect"][i]) / (savings["Total Actual Elect"][0] * savings["Total Model Elect"][i]));
     }
 
+    table.savings = savings;
 
-    console.log(savings);
-    console.log(totalResult);
+    return table;
 }
 

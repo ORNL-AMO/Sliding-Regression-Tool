@@ -49,9 +49,9 @@
         <table id="data-table">
           <tr></tr>
         </table>
-      <div>
-    </div>
+      </div>
     <div class="col-2"></div>
+    </div>
   </div>
 
   <div id="calculate-btn-row" class="row">
@@ -60,6 +60,65 @@
       <button id="calculate-btn" type="button" onclick="calcENPI()" disabled>Calculate</button>
     </div>
     <div class="col-2"></div>
+  </div>
+
+  <div id="model-selection-row" class="row">
+    <div class="col-12">
+      <div id="model-selection-title-row" class="row">
+        <div class="col-2"></div>
+        <div id="model-selection-title-container" class="col-8">
+          <div id="model-selection-title"><strong>Model Selection</strong></div>
+        </div>
+        <div class="col-2"></div>
+      </div>
+      <div class="row">
+        <div class="col-2"></div>
+        <div id="model-selection-container" class="col-8">
+          <div class="row">
+            <div id="energy-selection-row" class="col-4">
+              <div class="row">
+                <div class="col-12">
+                  <div style="text-align: center;"><strong>Energy</strong></div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12" style="text-align: center;">
+                  <select id="energy-selector" class="model-selector">
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div id="model-year-div" class="col-4">
+              <div class="row">
+                <div class="col-12">
+                  <div style="text-align: center;"><strong>Model Year</strong></div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12" style="text-align: center;">
+                  <select id="model-year-selector" class="model-selector">
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div id="model-selector-row" class="col-4">
+              <div class="row">
+                <div class="col-12">
+                  <div style="text-align: center;"><strong>Model</strong></div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12" style="text-align: center;">
+                  <select id="model-selector" class="model-selector">
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-2"></div>
+      </div>
+    </div>
   </div>
 
   <div id="info-row" class="row">
