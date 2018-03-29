@@ -122,16 +122,16 @@ function doRegression(json){
             for(var j = 0; j < 12; j++){
                 independentSum += Number((json.independent[independentKeys[k]].slice(i, i + 12))[j][0])
             }
-            console.log(totalResult[model][independents[k] + "Coeff" + model] [year]);
+            //console.log(totalResult[model][independents[k] + "Coeff" + model] [year]);
 
             //json.independent[independentKeys[i]][year] *
-            savings["Total Model Elect"][i] += totalResult[model][independents[k] + "Coeff" + model] [year] * independentSum;
+            savings["Total Model Elect"][i] += totalResult[model][independents[k] + "Coeff" + model][year] * independentSum;
         }
 
-
+        savings["Total Model Elect"][i] += totalResult[model]["Intercept" + model][year] * 12;
         savings["Total Actual Elect"][i] = sum;
 
-        savings["%Savings"][i] = 1 - (savings["Total Model Elect"][0] * savings["Total Actual Elect"][i]) / (savings["Total Actual Elect"][0] * savings["Total Model Elect"][i]);
+        savings["%Savings"][i] = 1 - ((savings["Total Model Elect"][0] * savings["Total Actual Elect"][i]) / (savings["Total Actual Elect"][0] * savings["Total Model Elect"][i]));
     }
 
 

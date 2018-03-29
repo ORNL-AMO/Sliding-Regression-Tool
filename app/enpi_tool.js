@@ -406,8 +406,11 @@ function fillDataTable(json){
         }
     }
 
+    firstRow.style.backgroundColor = "white";
+
     document.getElementById("calculate-btn").style.display = "inline";
-    document.getElementById("calculate-btn-row").style.paddingTop = "30px"
+    document.getElementById("calculate-btn-row").style.paddingTop = "30px";
+    document.getElementById("data-table-div").style.height = "500px";
     getTypes();
 }
 
@@ -445,6 +448,8 @@ function clearData(){
     nameDisplay.style.display = "none";
 
     document.getElementById("filename-display-row").style.paddingTop = "0px";
+    document.getElementById("data-table-div").style.height = "0px";
+    document.getElementById("alert-box").style.display = "none";
 
 }
 
