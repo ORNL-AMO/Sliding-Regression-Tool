@@ -242,13 +242,13 @@ function buildxy2(dependent, independent){
         var numvariables = independent.length;
 
         //Runs through as many rows as there are dates available
-        for (var i = 0; i < json.date.Date.length; i++) {
+        for (var i = 0; i < dependent.length; i++) {
 
             for(var j = 0; j < numvariables; j++){
                 X[j+1][N] = independent[j][N];
             }
 
-            Y[N] = dependent[N];
+            Y[N] = dependent[N][0];
 
             N++;
 
@@ -769,9 +769,6 @@ function calc2(){
 
 function calc3(num, dependent, independent){
 
-    console.log(dependent);
-    console.log(independent);
-
     var model = {
         fittedModal: "",
         params: [],
@@ -789,6 +786,7 @@ function calc3(num, dependent, independent){
         durbanWatson: "",
         meanAbsE: "",
         normalityCond: "",
+        intercept: "",
         iResidual: []
     };
 
@@ -816,7 +814,8 @@ function calc3(num, dependent, independent){
             var predicted = new Array;
             var residual = new Array;
             var output = "Y = " + roundSigDig(regrCoeff[0], sigDig);
-            var SE=0;
+            model.intercept = regrCoeff[0];
+            var SE = 0;
             var ST = 0;
 
 
@@ -848,7 +847,8 @@ function calc3(num, dependent, independent){
                 model.iResidual[i+1] = ("("+(i+2)+") "+ Math.round(residual[i]*Math.pow(10,4))/Math.pow(10,4)+"\t\t");
 
                 SE += residual[i];
-                ST += Y[i+1];
+                //console.log(Number(Y[i+1]));
+                ST += Number(Y[i+1]);
 
             }
 
@@ -856,19 +856,24 @@ function calc3(num, dependent, independent){
             var MSE = 0;
             var MST = 0;
 
+            //console.log(ST);
+            // console.log(N);
+
             MSE = SE/N;
             MST = ST/N;
 
             var SSE = 0;
             var SST = 0;
 
-
             for (i = 0; i < N; i++) {
                 SSE += (residual[i-1] - MSE)*(residual[i-1] - MSE);
 
                 SST += (Y[i] - MST) *(Y[i] - MST);
-
             }
+
+            // console.log(SST);
+            // console.log("/////////////////////////////////////////////////////////");
+
             var FR;
             var RRSQ;
 
@@ -1223,5 +1228,6 @@ function calc3(num, dependent, independent){
     else  if (num == 6)
     {
     }
+
     return model;
 }
