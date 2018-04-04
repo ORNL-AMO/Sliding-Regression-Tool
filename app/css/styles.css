@@ -251,7 +251,7 @@ tr:nth-child(odd) {
     display: none;
 }
 
-#model-selection-container {
+.model-selection-container {
     background-color: #e3e3e3;
     padding-bottom: 20px;
 }

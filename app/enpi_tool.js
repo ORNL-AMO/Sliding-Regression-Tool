@@ -104,6 +104,7 @@ var formatted_json = {};
 var display_json = {};
 var types = [];
 var fileName = "";
+var tables = [];
 
 // Get file data on drop
 dropZone.addEventListener('drop', function handleDrop(e) {
@@ -319,44 +320,116 @@ function calcENPI(){
 
     if(numberOfDependents > 0 && numberOfIndependents > 0) {
         reformatJson();
-        var table = doRegression(formatted_json);
 
-        var energySelector = document.getElementById("energy-selector");
-        energySelector.innerHTML = "";
 
-        for(var i = 0; i < types.length; i++){
-            if(types[i] == "Dependent") {
-                energySelector.innerHTML += "<option value=" + raw_json[0][i] + ">" + raw_json[0][i] + "</option>";
-                energySelector.style.width = "";
-                energySelector.disabled = false;
-                energySelector.title = "";
-            }
-        }
 
-        var modelYearSelector = document.getElementById("model-year-selector");
-        modelYearSelector.innerHTML = "";
-
-        for(var i = 0; i < (formatted_json["date"][Object.keys(formatted_json.date)].length-11); i++) {
-            modelYearSelector.innerHTML += "<option value="+i+">" + formatted_json["date"][Object.keys(formatted_json.date)][i] + "</option>";
-        }
-
-        var models = document.getElementById("model-selector");
-        models.innerHTML = "";
-
-        for(var i = 0; i < table.combinations.length; i++){
-            var combinationStr = "";
-            for(var j = 0; j < table.combinations[i].length; j++){
-                combinationStr += table.combinations[i][j];
-                if(j != (table.combinations[i].length-1)){
-                    combinationStr += " / ";
-                }
-            }
-            models.innerHTML += "<option value=" + i + ">" + combinationStr + "<option>";
-        }
+        //Works, but do heat map first
+        //loadModelContainer(numberOfDependents);
 
         document.getElementById("model-selection-row").style.display = "inline";
     }
 }
+
+function makeHeatmap(){
+
+}
+
+function recalculateSavings(dependentNumber){
+    tables[dependentNumber] = findSavings(formatted_json, tables[dependentNumber], dependentNumber);
+}
+
+function loadModelContainer(numberOfDependents){
+
+    var modelContainer = document.getElementById("models");
+    modelContainer.innerHTML = "";
+
+    for(var i = 0; i < numberOfDependents; i++) {
+
+        tables[i] = findResults(formatted_json);
+
+        var dependentName = Object.keys(formatted_json["dependent"])[i];
+
+
+        modelContainer.innerHTML += "<div class=\"row\">\n" +
+            "          <div class=\"col-2\"></div>\n" +
+            "          <div class=\"col-8 model-selection-container\">\n" +
+            "            <div class=\"row\">\n" +
+            "              <div class=\"col-4\">\n" +
+            "                <div class=\"row\">\n" +
+            "                  <div class=\"col-12\">\n" +
+            "                    <div style=\"text-align: center;\"></div>\n" +
+            "                  </div>\n" +
+            "                </div>\n" +
+            "                <div class=\"row\" style='padding-top: 22px;'>\n" +
+            "                  <div id='" + dependentName + "-energy' class=\"col-12\" style=\"text-align: center;\">\n" +
+            "                  </div>\n" +
+            "                </div>\n" +
+            "              </div>\n" +
+            "              <div class=\"col-4\">\n" +
+            "                <div class=\"row\">\n" +
+            "                  <div class=\"col-12\">\n" +
+            "                    <div style=\"text-align: center;\"><strong>Model Year</strong></div>\n" +
+            "                  </div>\n" +
+            "                </div>\n" +
+            "                <div class=\"row\">\n" +
+            "                  <div class=\"col-12\" style=\"text-align: center;\">\n" +
+            "                    <select id='" + dependentName + "-model-year-selector' class=\"model-selector\" onchange=\"recalculateSavings(" + i + ")\">\n" +
+            "                    </select>\n" +
+            "                  </div>\n" +
+            "                </div>\n" +
+            "              </div>\n" +
+            "              <div class=\"col-4\">\n" +
+            "                <div class=\"row\">\n" +
+            "                  <div class=\"col-12\">\n" +
+            "                    <div style=\"text-align: center;\"><strong>Model</strong></div>\n" +
+            "                  </div>\n" +
+            "                </div>\n" +
+            "                <div class=\"row\">\n" +
+            "                  <div class=\"col-12\" style=\"text-align: center;\">\n" +
+            "                    <select id=\"" + dependentName + "-model-selector\" class=\"model-selector\" onchange=\"recalculateSavings(" + i + ")\">\n" +
+            "                    </select>\n" +
+            "                  </div>\n" +
+            "                </div>\n" +
+            "              </div>\n" +
+            "            </div>\n" +
+            "          </div>\n" +
+            "          <div class=\"col-2\"></div>\n" +
+            "          <div class='col-2'></div>" +
+            "          <div class='col-8' style='height: 150px; width: 100px; background-color: red;'></div>" +
+            "          <div class='col-2'></div>" +
+            "        </div>";
+
+        var energy = document.getElementById(dependentName + "-energy");
+        energy.innerHTML = "<strong>" + dependentName + "</strong>";
+
+
+        var modelYearSelector = document.getElementById(dependentName + "-model-year-selector");
+        modelYearSelector.innerHTML = "";
+
+        for(var j = 0; j < (formatted_json["date"][Object.keys(formatted_json.date)].length-11); j++) {
+            modelYearSelector.innerHTML += "<option value="+j+">" + formatted_json["date"][Object.keys(formatted_json.date)][j] + "</option>";
+        }
+
+        var models = document.getElementById(dependentName + "-model-selector");
+        models.innerHTML = "";
+
+        for(var j = 0; j < tables[i].combinations.length; j++){
+            var combinationStr = "";
+            for(var k = 0; k < tables[i].combinations[j].length; k++){
+                combinationStr += tables[i].combinations[j][k];
+                if(k != (tables[i].combinations[j].length-1)){
+                    combinationStr += " / ";
+                }
+            }
+            models.innerHTML += "<option value=" + i + ">" + combinationStr + "</option>";
+        }
+
+        tables[i] = findSavings(formatted_json, tables[i], i);
+
+    }
+}
+
+
 
 function fillDataBoxs(json){
 
