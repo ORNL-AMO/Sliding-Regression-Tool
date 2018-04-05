@@ -118,15 +118,9 @@ function findSavings(json, table, dependentNumber){
     var model = document.getElementById(dependent + "-model-selector").value;
     var savings = [];
 
-
-    console.log(dependent);
-
     savings["Total Actual " + dependent] = [];
     savings["Total Model " + dependent] = [];
     savings["%Savings"] = [];
-
-    console.log(table.results);
-    console.log(table.combinations[model]);
 
     for(var i = 0; i < (rows - 11); i++) {
         savings["Total Model " + dependent][i] = 0;
