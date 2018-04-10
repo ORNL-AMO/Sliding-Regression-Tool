@@ -321,134 +321,186 @@ function calcENPI(){
     if(numberOfDependents > 0 && numberOfIndependents > 0) {
         reformatJson();
 
-
+        var heatmapJsons = [];
         for(var i = 0; i < numberOfDependents; i++) {
             tables[i] = findResults(formatted_json);
         }
 
-        makeHeatmap();
+        document.getElementById("heatMaps").innerHTML = "";
+
+        for(var i =0; i < tables.length; i++){
+            heatmapJsons[i] = [];
+            for(var j = 0; j < tables[i]["results"].length; j++){
+                heatmapJsons[i][j] = makeHeatmapJson(tables[i]["results"][j], i, j);
+            }
+            makeHeatmap(heatmapJsons[i], i);
+        }
+
 
         //Works, but do heat map first
         //loadModelContainer(numberOfDependents);
 
-        document.getElementById("model-selection-row").style.display = "inline";
+        //document.getElementById("model-selection-row").style.display = "inline";
     }
 }
 
-function makeHeatmap(){
+function makeHeatmapJson(json, dependentNumber, model){
+    var heatmapData = [];
+
+    for(var i = 0; i < json["Date"].length; i++){
+        heatmapData[i] = {Date: json["Date"][i][0], rSquare: json["rSquare"][i], index: i, fittedModel: json["fittedModel"][i], savings:  findSavingsPoint(formatted_json, tables[dependentNumber], dependentNumber, i, model)};
+    }
+
+    return heatmapData;
+}
+
+function makeHeatmap(heatmapJson, number){
+
+    document.getElementById("heatMaps").innerHTML += "<div id='heatmap-row" + number + "' class=\"row heatmap-row\">\n" +
+                                                        "    <div class=\"col-2\"></div>\n" +
+                                                        "    <div class=\"col-8\">\n" +
+                                                        "      <div id='heatmap-container" + number + "' class='heatmap-container'></div>\n" +
+                                                        "    </div>\n" +
+                                                        "    <div class=\"col-2\"></div>\n" +
+                                                        "  </div>\n" +
+                                                        "\n" +
+                                                        "  <div id='model-info-table-container" + number + "' class=\"row\">\n" +
+                                                        "    <div class=\"col-2\"></div>\n" +
+                                                        "    <div id='model-info-table-col" + number + "' class=\"col-8\">\n" +
+                                                        "      <div id='model-info-table-div" + number + "'>\n" +
+                                                        "        <table id='model-info-table" + number + "'>\n" +
+                                                        "          <tr></tr>\n" +
+                                                        "        </table>\n" +
+                                                        "      </div>\n" +
+                                                        "      <div class=\"col-2\"></div>\n" +
+                                                        "    </div>\n" +
+                                                        "  </div>\n";
+
+    var container = document.getElementById("heatmap-container" + number);
+
+    container.innerHTML = "";
 
     const margin = { top: 50, right: 0, bottom: 100, left: 30 },
-        width = 400 - margin.left - margin.right,
-        height = 200 - margin.top - margin.bottom,
-        gridSize = Math.floor(width / 24),
-        legendElementWidth = gridSize*2,
-        buckets = 9,
-        colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"], // alternatively colorbrewer.YlGnBu[9]
-        days = ["1", "2", "3", "4", "5"],
-        times = ["1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a", "12a", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p", "12p"];
-    datasets = ["data.tsv", "data2.tsv"];
+        width = container.offsetWidth,
+        gridSize = Math.floor(20),
+        height = gridSize * heatmapJson.length;
 
-    const svg = d3.select("#heatmap-container").append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    var combinations = [];
 
-    console.log(gridSize);
+    for(var j = 0; j < tables[0].combinations.length; j++){
+        var combinationStr = "";
+        for(var k = 0; k < tables[0].combinations[j].length; k++){
+            combinationStr += tables[0].combinations[j][k];
+            if(k != (tables[0].combinations[j].length-1)){
+                combinationStr += " / ";
+            }
+        }
+        combinations[j] = combinationStr;
+    }
 
-    const dayLabels = svg.selectAll(".dayLabel")
-        .data(days)
-        .enter().append("text")
-        .text(function (d) { return d; })
-        .attr("x", 0)
-        .attr("y", (d, i) => i * gridSize)
-        .style("text-anchor", "end")
-        .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
-        .attr("class", (d, i) => ((i >= 0 && i <= 4) ? "dayLabel mono axis axis-workweek" : "dayLabel mono axis"));
 
-    const timeLabels = svg.selectAll(".timeLabel")
-        .data(times)
-        .enter().append("text")
-        .text((d) => d)
-        .attr("x", (d, i) => i * gridSize)
-        .attr("y", 0)
-        .style("text-anchor", "middle")
-        .attr("transform", "translate(" + gridSize / 2 + ", -6)")
-        .attr("class", (d, i) => ((i >= 7 && i <= 16) ? "timeLabel mono axis axis-worktime" : "timeLabel mono axis"));
-
-    const type = (d) => {
-        return {
-            day: +d.day,
-            hour: +d.hour,
-            value: +d.value
-        };
-    };
-
-    const heatmapChart = function(tsvFile) {
-        d3.tsv(tsvFile, type, (error, data) => {
-            const colorScale = d3.scaleQuantile()
-                .domain([0, buckets - 1, d3.max(data, (d) => d.value)])
-                .range(colors);
-
-        const cards = svg.selectAll(".hour")
-            .data(data, (d) => d.day+':'+d.hour);
-
-        cards.append("title");
-
-        cards.enter().append("rect")
-            .attr("x", (d) => (d.hour - 1) * gridSize)
-            .attr("y", (d) => (d.day - 1) * gridSize)
-            .attr("rx", 4)
-            .attr("ry", 4)
-            .attr("class", "hour bordered")
-            .attr("width", gridSize)
-            .attr("height", gridSize)
-            .style("fill", colors[0])
-            .merge(cards)
-            .transition()
-            .duration(1000)
-            .style("fill", (d) => colorScale(d.value));
-
-        cards.select("title").text((d) => d.value);
-
-        cards.exit().remove();
-
-        const legend = svg.selectAll(".legend")
-            .data([0].concat(colorScale.quantiles()), (d) => d);
-
-        const legend_g = legend.enter().append("g")
-            .attr("class", "legend");
-
-        legend_g.append("rect")
-            .attr("x", (d, i) => legendElementWidth * i)
-            .attr("y", height)
-            .attr("width", legendElementWidth)
-            .attr("height", gridSize / 2)
-            .style("fill", (d, i) => colors[i]);
-
-        legend_g.append("text")
-            .attr("class", "mono")
-            .text((d) => "≥ " + Math.round(d))
-    .attr("x", (d, i) => legendElementWidth * i)
-    .attr("y", height + gridSize);
-
-        legend.exit().remove();
+    var colorDomain = d3.extent(heatmapJson, function(d){
+        return d.rSquare;
     });
-    };
 
-    heatmapChart(datasets[0]);
+    var colorScale = d3.scaleLinear()
+        .domain([0, 1])
+        .range(["red","green"]);
 
-    const datasetpicker = d3.select("#dataset-picker")
-        .selectAll(".dataset-button")
-        .data(datasets);
+    d3.select("#heatmap-container" + number)
+        .append("svg")
+        .attr("id", "heatmap" + number)
+        .attr("width", function(){
+            return (gridSize * heatmapJson[0].length) + margin.left + margin.right;
+        })
+        .attr("height", height);
 
-    datasetpicker.enter()
-        .append("input")
-        .attr("value", (d) => "Dataset " + d)
-.attr("type", "button")
-        .attr("class", "dataset-button")
-        .on("click", (d) => heatmapChart(d));
+    var div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
 
+    for(var i = 0; i < heatmapJson.length; i++) {
+        for (var j = 0; j < heatmapJson[i].length; j++) {
+
+            var model = [{modelCombo: i, modelYear: j}];
+
+            d3.select("#heatmap" + number).append("rect")
+                .data(model)
+                .attr("x", () => {
+                    return(heatmapJson[i][j].index - 1) * gridSize;
+                })
+                .attr("y", () => {
+                    return(i) * gridSize;
+                })
+                .attr("width", gridSize)
+                .attr("height", gridSize)
+                .style("fill", () => {
+                        return colorScale(heatmapJson[i][j].rSquare);
+                })
+                .on("click", (d) => {
+                    console.log("CLICK");
+                    var modelInfoTable = document.getElementById("model-info-table"  + number);
+
+                    modelInfoTable.innerHTML = "";
+
+                    document.getElementById("model-info-table-div" + number).style.height = "100%";
+
+                    var newRow = modelInfoTable.insertRow(0);
+
+                    //rSquared Value
+                    newCol = newRow.insertCell(0);
+                    newCol.innerHTML =  heatmapJson[d.modelCombo][d.modelYear].rSquare;
+                    newCol.style.textAlign = "center";
+                    newCol.width = "50%";
+                    newCol.style.overflowX = "auto";
+
+                    //Fitted Model
+                    var newCol = newRow.insertCell(0);
+                    newCol.innerHTML = heatmapJson[d.modelCombo][d.modelYear].fittedModel;
+                    newCol.style.textAlign = "center";
+                    newCol.width = "50%";
+                    newCol.style.overflowX = "auto";
+
+                    newRow = modelInfoTable.insertRow(0);
+
+                    //rSquared Value
+                    newCol = newRow.insertCell(0);
+                    newCol.innerHTML = "<strong>rSquare Value</strong>";
+                    newCol.style.textAlign = "center";
+                    newCol.width = "50%";
+
+                    //Fitted Model
+                    var newCol = newRow.insertCell(0);
+                    newCol.innerHTML = "<strong>Fitted Model</strong>";
+                    newCol.style.textAlign = "center";
+                    newCol.width = "50%";
+
+                    newRow = modelInfoTable.insertRow(0);
+
+                    //Title
+                    newCol = newRow.insertCell(0);
+                    newCol.colSpan = "2";
+                    newCol.innerHTML = "<strong>Model Information</strong>";
+                    newCol.style.textAlign = "center";
+                    newCol.style.fontSize = "20px";
+                })
+                .on("mouseover", (d) => {
+                    console.log("hover");
+                    div.transition()
+                        .duration(200)
+                        .style("opacity", 1);
+                    div.html(heatmapJson[d.modelCombo][d.modelYear].Date + "<br/>" + combinations[d.modelCombo] + "<br/>" + heatmapJson[d.modelCombo][d.modelYear].rSquare + "<br/>" + heatmapJson[d.modelCombo][d.modelYear].fittedModel)
+                        .style("left", (d3.event.pageX) + "px")
+                        .style("top", (d3.event.pageY - 28) + "px");
+                })
+                .on("mouseout", (d) => {
+                    div.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+                })
+                .attr("class", "hour bordered");
+        }
+    }
 }
 
 function recalculateSavings(dependentNumber){
@@ -465,7 +517,6 @@ function loadModelContainer(numberOfDependents){
         tables[i] = findResults(formatted_json);
 
         var dependentName = Object.keys(formatted_json["dependent"])[i];
-
 
         modelContainer.innerHTML += "<div class=\"row\">\n" +
             "          <div class=\"col-2\"></div>\n" +
@@ -542,7 +593,6 @@ function loadModelContainer(numberOfDependents){
         }
 
         tables[i] = findSavings(formatted_json, tables[i], i);
-
     }
 }
 
@@ -628,7 +678,9 @@ function fillDataTable(json){
 
     document.getElementById("calculate-btn").style.display = "inline";
     document.getElementById("calculate-btn-row").style.paddingTop = "30px";
+    document.getElementById("clear-btn").style.display = "inline";
     document.getElementById("data-table-div").style.height = "500px";
+    document.getElementById("graph-col").style.display = "inline";
 
     getTypes();
 }
@@ -646,21 +698,21 @@ function runTestCase(){
 function clearData(){
     document.getElementById("data-table").innerHTML="";
 
-    document.getElementById("fitted-model").textContent = "";
-    document.getElementById("r-square").textContent = "";
-    document.getElementById("f-statistic").textContent = "";
-    document.getElementById("mean").textContent = "";
-    document.getElementById("variance").textContent = "";
-    document.getElementById("mean-1").textContent = "";
-    document.getElementById("mean-2").textContent = "";
-    document.getElementById("var-1").textContent = "";
-    document.getElementById("var-2").textContent = "";
-    document.getElementById("first-order").textContent = "";
-    document.getElementById("second-order").textContent = "";
-    document.getElementById("durbin-watson").textContent = "";
-    document.getElementById("mean-abs-error").textContent = "";
-    document.getElementById("normality").textContent = "";
-    document.getElementById("i-residual").textContent = "";
+    // document.getElementById("fitted-model").textContent = "";
+    // document.getElementById("r-square").textContent = "";
+    // document.getElementById("f-statistic").textContent = "";
+    // document.getElementById("mean").textContent = "";
+    // document.getElementById("variance").textContent = "";
+    // document.getElementById("mean-1").textContent = "";
+    // document.getElementById("mean-2").textContent = "";
+    // document.getElementById("var-1").textContent = "";
+    // document.getElementById("var-2").textContent = "";
+    // document.getElementById("first-order").textContent = "";
+    // document.getElementById("second-order").textContent = "";
+    // document.getElementById("durbin-watson").textContent = "";
+    // document.getElementById("mean-abs-error").textContent = "";
+    // document.getElementById("normality").textContent = "";
+    // document.getElementById("i-residual").textContent = "";
 
     var nameDisplay = document.getElementById("filename-display");
     nameDisplay.innerHTML = "";
@@ -669,6 +721,10 @@ function clearData(){
     document.getElementById("filename-display-row").style.paddingTop = "0px";
     document.getElementById("data-table-div").style.height = "0px";
     document.getElementById("alert-box").style.display = "none";
+    document.getElementById("graph-col").style.display = "none";
+    document.getElementById("clear-btn").style.display = "none";
+    document.getElementById("calculate-btn").style.display = "none";
+    document.getElementById("calculate-btn-row").style.paddingTop = "0px";
 
 }
 
