@@ -356,7 +356,16 @@ function makeHeatmapJson(json, dependentNumber, model){
 
 function makeHeatmap(heatmapJson, number){
 
-    document.getElementById("heatMaps").innerHTML += "<div id='heatmap-row" + number + "' class=\"row heatmap-row\">\n" +
+    console.log(formatted_json);
+
+    var dependentKeys = Object.keys(formatted_json.dependent);
+
+    document.getElementById("heatMaps").innerHTML +=    "   <div class='row'>" +
+                                                        "       <div class='col-2'></div>" +
+                                                        "       <div class='col-8 heatmap-title'><strong>" + dependentKeys[number] + "</strong></div>" +
+                                                        "       <div class='col-2'></div>" +
+                                                        "   </div>" +
+                                                        "   <div id='heatmap-row" + number + "' class=\"row heatmap-row\">\n" +
                                                         "    <div class=\"col-2\"></div>\n" +
                                                         "    <div class=\"col-8\">\n" +
                                                         "      <div id='heatmap-container" + number + "' class='heatmap-container'></div>\n" +
@@ -725,6 +734,7 @@ function clearData(){
     document.getElementById("clear-btn").style.display = "none";
     document.getElementById("calculate-btn").style.display = "none";
     document.getElementById("calculate-btn-row").style.paddingTop = "0px";
+    document.getElementById("heatMaps").innerHTML = "";
 
 }
 
