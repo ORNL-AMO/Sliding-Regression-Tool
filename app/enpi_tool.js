@@ -304,6 +304,10 @@ function setupENPI(){
     //doRegression(formatted_json)
 }
 
+
+var models = [];
+var count = 0;
+
 function calcENPI(){
 
     var numberOfDependents = 0;
@@ -322,12 +326,17 @@ function calcENPI(){
         reformatJson();
 
         var heatmapJsons = [];
+        tables = [];
         for(var i = 0; i < numberOfDependents; i++) {
             tables[i] = findResults(formatted_json);
         }
 
         document.getElementById("heatMaps").innerHTML = "";
 
+        models = [];
+        count = 0;
+
+        console.log(tables);
         for(var i =0; i < tables.length; i++){
             heatmapJsons[i] = [];
             for(var j = 0; j < tables[i]["results"].length; j++){
@@ -336,6 +345,8 @@ function calcENPI(){
             makeHeatmap(heatmapJsons[i], i);
         }
 
+
+        loadListeners(heatmapJsons);
 
         //Works, but do heat map first
         //loadModelContainer(numberOfDependents);
@@ -353,6 +364,7 @@ function makeHeatmapJson(json, dependentNumber, model){
 
     return heatmapData;
 }
+
 
 function makeHeatmap(heatmapJson, number){
 
@@ -394,20 +406,6 @@ function makeHeatmap(heatmapJson, number){
         gridSize = Math.floor(20),
         height = gridSize * heatmapJson.length;
 
-    var combinations = [];
-
-    for(var j = 0; j < tables[0].combinations.length; j++){
-        var combinationStr = "";
-        for(var k = 0; k < tables[0].combinations[j].length; k++){
-            combinationStr += tables[0].combinations[j][k];
-            if(k != (tables[0].combinations[j].length-1)){
-                combinationStr += " / ";
-            }
-        }
-        combinations[j] = combinationStr;
-    }
-
-
     var colorDomain = d3.extent(heatmapJson, function(d){
         return d.rSquare;
     });
@@ -424,93 +422,183 @@ function makeHeatmap(heatmapJson, number){
         })
         .attr("height", height);
 
-    var div = d3.select("body").append("div")
-        .attr("class", "tooltip")
-        .style("opacity", 0);
-
     for(var i = 0; i < heatmapJson.length; i++) {
         for (var j = 0; j < heatmapJson[i].length; j++) {
 
-            var model = [{modelCombo: i, modelYear: j}];
+            models[count] = {modelCombo: i, modelYear: j, dependentNumber: number};
+            count++;
+
 
             d3.select("#heatmap" + number).append("rect")
-                .data(model)
                 .attr("x", () => {
-                    return(heatmapJson[i][j].index - 1) * gridSize;
+                return(heatmapJson[i][j].index - 1) * gridSize;
                 })
                 .attr("y", () => {
-                    return(i) * gridSize;
+                        return(i) * gridSize;
                 })
                 .attr("width", gridSize)
-                .attr("height", gridSize)
-                .style("fill", () => {
+                        .attr("height", gridSize)
+                        .style("fill", () => {
                         return colorScale(heatmapJson[i][j].rSquare);
                 })
-                .on("click", (d) => {
-                    console.log("CLICK");
-                    var modelInfoTable = document.getElementById("model-info-table"  + number);
-
-                    modelInfoTable.innerHTML = "";
-
-                    document.getElementById("model-info-table-div" + number).style.height = "100%";
-
-                    var newRow = modelInfoTable.insertRow(0);
-
-                    //rSquared Value
-                    newCol = newRow.insertCell(0);
-                    newCol.innerHTML =  heatmapJson[d.modelCombo][d.modelYear].rSquare;
-                    newCol.style.textAlign = "center";
-                    newCol.width = "50%";
-                    newCol.style.overflowX = "auto";
-
-                    //Fitted Model
-                    var newCol = newRow.insertCell(0);
-                    newCol.innerHTML = heatmapJson[d.modelCombo][d.modelYear].fittedModel;
-                    newCol.style.textAlign = "center";
-                    newCol.width = "50%";
-                    newCol.style.overflowX = "auto";
-
-                    newRow = modelInfoTable.insertRow(0);
-
-                    //rSquared Value
-                    newCol = newRow.insertCell(0);
-                    newCol.innerHTML = "<strong>rSquare Value</strong>";
-                    newCol.style.textAlign = "center";
-                    newCol.width = "50%";
-
-                    //Fitted Model
-                    var newCol = newRow.insertCell(0);
-                    newCol.innerHTML = "<strong>Fitted Model</strong>";
-                    newCol.style.textAlign = "center";
-                    newCol.width = "50%";
-
-                    newRow = modelInfoTable.insertRow(0);
-
-                    //Title
-                    newCol = newRow.insertCell(0);
-                    newCol.colSpan = "2";
-                    newCol.innerHTML = "<strong>Model Information</strong>";
-                    newCol.style.textAlign = "center";
-                    newCol.style.fontSize = "20px";
-                })
-                .on("mouseover", (d) => {
-                    console.log("hover");
-                    div.transition()
-                        .duration(200)
-                        .style("opacity", 1);
-                    div.html(heatmapJson[d.modelCombo][d.modelYear].Date + "<br/>" + combinations[d.modelCombo] + "<br/>" + heatmapJson[d.modelCombo][d.modelYear].rSquare + "<br/>" + heatmapJson[d.modelCombo][d.modelYear].fittedModel)
-                        .style("left", (d3.event.pageX) + "px")
-                        .style("top", (d3.event.pageY - 28) + "px");
-                })
-                .on("mouseout", (d) => {
-                    div.transition()
-                    .duration(500)
-                    .style("opacity", 0);
-                })
+                // .on("click", (d) => {
+                //         console.log("CLICK");
+                //     var modelInfoTable = document.getElementById("model-info-table"  + number);
+                //
+                //     modelInfoTable.innerHTML = "";
+                //
+                //     document.getElementById("model-info-table-div" + number).style.height = "100%";
+                //
+                //     var newRow = modelInfoTable.insertRow(0);
+                //
+                //     //rSquared Value
+                //     newCol = newRow.insertCell(0);
+                //     newCol.innerHTML =  heatmapJson[d.modelCombo][d.modelYear].rSquare;
+                //     newCol.style.textAlign = "center";
+                //     newCol.width = "50%";
+                //     newCol.style.overflowX = "auto";
+                //
+                //     //Fitted Model
+                //     var newCol = newRow.insertCell(0);
+                //     newCol.innerHTML = heatmapJson[d.modelCombo][d.modelYear].fittedModel;
+                //     newCol.style.textAlign = "center";
+                //     newCol.width = "50%";
+                //     newCol.style.overflowX = "auto";
+                //
+                //     newRow = modelInfoTable.insertRow(0);
+                //
+                //     //rSquared Value
+                //     newCol = newRow.insertCell(0);
+                //     newCol.innerHTML = "<strong>rSquare Value</strong>";
+                //     newCol.style.textAlign = "center";
+                //     newCol.width = "50%";
+                //
+                //     //Fitted Model
+                //     var newCol = newRow.insertCell(0);
+                //     newCol.innerHTML = "<strong>Fitted Model</strong>";
+                //     newCol.style.textAlign = "center";
+                //     newCol.width = "50%";
+                //
+                //     newRow = modelInfoTable.insertRow(0);
+                //
+                //     //Title
+                //     newCol = newRow.insertCell(0);
+                //     newCol.colSpan = "2";
+                //     newCol.innerHTML = "<strong>Model Information</strong>";
+                //     newCol.style.textAlign = "center";
+                //     newCol.style.fontSize = "20px";
+                // })
+                // .on("mouseover", (d) => {
+                //         console.log("hover");
+                //     div.transition()
+                //         .duration(200)
+                //         .style("opacity", 1);
+                //     div.html(heatmapJson[d.modelCombo][d.modelYear].Date + "<br/>" + combinations[d.modelCombo] + "<br/>" + heatmapJson[d.modelCombo][d.modelYear].rSquare + "<br/>" + heatmapJson[d.modelCombo][d.modelYear].fittedModel)
+                //         .style("left", (d3.event.pageX) + "px")
+                //         .style("top", (d3.event.pageY - 28) + "px");
+                // })
+                // .on("mouseout", (d) => {
+                //         div.transition()
+                //         .duration(500)
+                //         .style("opacity", 0);
+                // })
                 .attr("class", "hour bordered");
         }
     }
 }
+
+function loadListeners(heatmapJsons){
+
+    var combinations = [];
+
+    for(var j = 0; j < tables[0].combinations.length; j++){
+        var combinationStr = "";
+        for(var k = 0; k < tables[0].combinations[j].length; k++){
+            combinationStr += tables[0].combinations[j][k];
+            if(k != (tables[0].combinations[j].length-1)){
+                combinationStr += " / ";
+            }
+        }
+        combinations[j] = combinationStr;
+    }
+
+    var div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+    d3.selectAll("rect")
+        .each( function(d, i){
+            var i = i;
+            d3.select(this)
+                .on("click", () => {
+                console.log(i);
+                console.log(models[i]);
+                var modelInfoTable = document.getElementById("model-info-table"  + models[i].dependentNumber);
+
+                modelInfoTable.innerHTML = "";
+
+                document.getElementById("model-info-table-div" + models[i].dependentNumber).style.height = "100%";
+
+                var newRow = modelInfoTable.insertRow(0);
+
+                //rSquared Value
+                newCol = newRow.insertCell(0);
+                newCol.innerHTML =  heatmapJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].rSquare;
+                newCol.style.textAlign = "center";
+                newCol.width = "50%";
+                newCol.style.overflowX = "auto";
+
+                //Fitted Model
+                var newCol = newRow.insertCell(0);
+                newCol.innerHTML = heatmapJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].fittedModel;
+                newCol.style.textAlign = "center";
+                newCol.width = "50%";
+                newCol.style.overflowX = "auto";
+
+                newRow = modelInfoTable.insertRow(0);
+
+                //rSquared Value
+                newCol = newRow.insertCell(0);
+                newCol.innerHTML = "<strong>rSquare Value</strong>";
+                newCol.style.textAlign = "center";
+                newCol.width = "50%";
+
+                //Fitted Model
+                var newCol = newRow.insertCell(0);
+                newCol.innerHTML = "<strong>Fitted Model</strong>";
+                newCol.style.textAlign = "center";
+                newCol.width = "50%";
+
+                newRow = modelInfoTable.insertRow(0);
+
+                //Title
+                newCol = newRow.insertCell(0);
+                newCol.colSpan = "2";
+                newCol.innerHTML = "<strong>Model Information</strong>";
+                newCol.style.textAlign = "center";
+                newCol.style.fontSize = "20px";
+            })
+            .on("mouseover", () => {
+                console.log("hover");
+                div.transition()
+                    .duration(200)
+                    .style("opacity", 1);
+                console.log(i);
+                console.log(models[i]);
+                div.html(heatmapJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].Date + "<br/>" + combinations[models[i].modelCombo] + "<br/>" + heatmapJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].rSquare + "<br/>" + heatmapJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].fittedModel)
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY - 28) + "px");
+            })
+            .on("mouseout", () => {
+                    div.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            })
+        })
+
+
+}
+
 
 function recalculateSavings(dependentNumber){
     tables[dependentNumber] = findSavings(formatted_json, tables[dependentNumber], dependentNumber);
