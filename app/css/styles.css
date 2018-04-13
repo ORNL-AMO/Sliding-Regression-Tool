@@ -9,16 +9,8 @@ html, body {
     align-items: center;
 }
 
-#graph-container {
-    text-align: center;
-    align-content: center;
-    align-items: center;
-    padding-top: 30px;
-}
-
 #graph-col {
-    align-content: center;
-    display: none;
+    padding: 0px;
 }
 
 #data-table-container {
@@ -85,6 +77,7 @@ html, body {
     align-content: center;
     align-items: center;
     padding-top: 0px;
+    padding-bottom: 30px;
 }
 
 #calculate-btn-col {
@@ -293,6 +286,7 @@ tr:nth-child(odd) {
 
 #model-number-selection {
     width: 150px;
+    width: 150px;
 }
 
 .heatmap-row {
@@ -327,6 +321,92 @@ tr:nth-child(odd) {
     padding-top: 30px;
     text-align: center;
     font-size: 22px;
+}
+
+.graph-title {
+    padding-top: 30px;
+    text-align: center;
+    font-size: 22px;
+}
+
+#heatMap-btn {
+    font-size: 25px;
+    background-color: #38c2c7;
+    color: white;
+    border-radius: 6px;
+    border: 0px;
+    border-top: none;
+    border-bottom: 3px solid #838383;
+    /*display: none;*/
+    width: 125px;
+}
+
+#heatMap-btn:focus {
+    outline: none !important;
+    background-color: #31abaf;
+    border-top: 3px solid #dcdcdc;
+    border-bottom: none;
+}
+
+#heatMap-btn:active {
+    outline: none !important;
+    background-color: #31abaf;
+    border-top: 3px solid #dcdcdc;
+    border-bottom: none;
+}
+
+#graph-btn {
+    font-size: 25px;
+    background-color: #38c2c7;
+    color: white;
+    border-radius: 6px;
+    border: 0px;
+    border-top: none;
+    border-bottom: 3px solid #838383;
+    /*display: none;*/
+    width: 125px;
+}
+
+#graph-btn:focus {
+    outline: none !important;
+    background-color: #31abaf;
+    border-top: 3px solid #dcdcdc;
+    border-bottom: none;
+}
+
+#graph-btn:active {
+    outline: none !important;
+    background-color: #31abaf;
+    border-top: 3px solid #dcdcdc;
+    border-bottom: none;
+}
+
+#display-format-title {
+    text-align: center;
+    font-size: 22px;
+    padding-top: 10px;
+    padding-bottom: 20px;
+}
+
+#display-format-col {
+    display: none;
+    background-color: #dcdcdc;
+    padding: 0px;
+    padding-bottom: 20px;
+}
+
+#displayZone {
+    padding-top: 20px;
+}
+
+.graph-container{
+    height: 400px;
+    width: 100%;
+    box-shadow: 0px 5px #c6c6c6;
+}
+
+.legendCol {
+    padding: 0px;
 }
 
 /***********************************/

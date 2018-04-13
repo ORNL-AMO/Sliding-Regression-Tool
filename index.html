@@ -61,7 +61,28 @@
     <div class="col-2"></div>
   </div>
 
-  <div id="heatMaps">
+  <div class="row">
+    <div class="col-4"></div>
+    <div id="display-format-col" class="col-4">
+      <div class="row">
+        <div id="display-format-title" class="col-12"><strong>Display Format</strong></div>
+      </div>
+      <div class="row">
+        <div class="col-1"></div>
+        <div class="col-5" style="text-align: center;">
+          <button id="heatMap-btn" type="button" onclick="displayHeatmaps()">Heat Map</button>
+        </div>
+        <div class="col-5" style="text-align: center;">
+          <button id="graph-btn" type="button" onclick="displayGraphs()">Graph</button>
+        </div>
+        <div class="col-1"></div>
+      </div>
+    </div>
+    <div class="col-4"></div>
+  </div>
+
+
+  <div id="displayZone">
   </div>
 
   <!--<div id="heatmap-row" class="row">-->
@@ -185,14 +206,6 @@
     <!--<div class="col-2"></div>-->
   <!--</div>-->
 
-  <div id="graph-container" class="row">
-    <div class="col-2"></div>
-    <div id="graph-col" class="col-8">
-      <div id="graph"></div>
-    </div>
-    <div class="col-2"></div>
-  </div>
-
   <div class="row" style="padding-top: 35px;">
     <div id="clear-col" class="col-12">
       <input id="clear-btn" value="Clear Data" onclick="clearData()" name="button3" type="button">
@@ -204,5 +217,4 @@
   <script src="app/maths.ts"></script>
   <script src="app/regression_calc.js"></script>
   <script src="app/enpi_tool.js"></script>
-  <script src="app/graph.js"></script>
 </html>

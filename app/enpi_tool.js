@@ -1,3 +1,5 @@
+d3 = require('d3');
+
 const testJson = {
     date: {
         Date: [
@@ -325,28 +327,14 @@ function calcENPI(){
     if(numberOfDependents > 0 && numberOfIndependents > 0) {
         reformatJson();
 
-        var heatmapJsons = [];
         tables = [];
         for(var i = 0; i < numberOfDependents; i++) {
             tables[i] = findResults(formatted_json);
         }
 
-        document.getElementById("heatMaps").innerHTML = "";
+        document.getElementById("displayZone").innerHTML = "";
 
-        models = [];
-        count = 0;
-
-        console.log(tables);
-        for(var i =0; i < tables.length; i++){
-            heatmapJsons[i] = [];
-            for(var j = 0; j < tables[i]["results"].length; j++){
-                heatmapJsons[i][j] = makeHeatmapJson(tables[i]["results"][j], i, j);
-            }
-            makeHeatmap(heatmapJsons[i], i);
-        }
-
-
-        loadListeners(heatmapJsons);
+        document.getElementById("display-format-col").style.display = "inline";
 
         //Works, but do heat map first
         //loadModelContainer(numberOfDependents);
@@ -355,7 +343,7 @@ function calcENPI(){
     }
 }
 
-function makeHeatmapJson(json, dependentNumber, model){
+function makeDisplayJson(json, dependentNumber, model){
     var heatmapData = [];
 
     for(var i = 0; i < json["Date"].length; i++){
@@ -365,14 +353,32 @@ function makeHeatmapJson(json, dependentNumber, model){
     return heatmapData;
 }
 
+function displayHeatmaps(){
 
-function makeHeatmap(heatmapJson, number){
+    var displayJsons = [];
 
-    console.log(formatted_json);
+    document.getElementById("displayZone").innerHTML = "";
+
+    models = [];
+    count = 0;
+
+    console.log(tables);
+    for(var i =0; i < tables.length; i++){
+        displayJsons[i] = [];
+        for(var j = 0; j < tables[i]["results"].length; j++){
+            displayJsons[i][j] = makeDisplayJson(tables[i]["results"][j], i, j);
+        }
+        makeHeatmap(displayJsons[i], i);
+    }
+
+    loadListeners(displayJsons);
+}
+
+function makeHeatmap(displayJson, number){
 
     var dependentKeys = Object.keys(formatted_json.dependent);
 
-    document.getElementById("heatMaps").innerHTML +=    "   <div class='row'>" +
+    document.getElementById("displayZone").innerHTML +=    "   <div class='row'>" +
                                                         "       <div class='col-2'></div>" +
                                                         "       <div class='col-8 heatmap-title'><strong>" + dependentKeys[number] + "</strong></div>" +
                                                         "       <div class='col-2'></div>" +
@@ -404,9 +410,9 @@ function makeHeatmap(heatmapJson, number){
     const margin = { top: 50, right: 0, bottom: 100, left: 30 },
         width = container.offsetWidth,
         gridSize = Math.floor(20),
-        height = gridSize * heatmapJson.length;
+        height = gridSize * displayJson.length;
 
-    var colorDomain = d3.extent(heatmapJson, function(d){
+    var colorDomain = d3.extent(displayJson, function(d){
         return d.rSquare;
     });
 
@@ -418,96 +424,34 @@ function makeHeatmap(heatmapJson, number){
         .append("svg")
         .attr("id", "heatmap" + number)
         .attr("width", function(){
-            return (gridSize * heatmapJson[0].length) + margin.left + margin.right;
+            return (gridSize * displayJson[0].length) + margin.left + margin.right;
         })
         .attr("height", height);
 
-    for(var i = 0; i < heatmapJson.length; i++) {
-        for (var j = 0; j < heatmapJson[i].length; j++) {
+    for(var i = 0; i < displayJson.length; i++) {
+        for (var j = 0; j < displayJson[i].length; j++) {
 
             models[count] = {modelCombo: i, modelYear: j, dependentNumber: number};
             count++;
 
-
             d3.select("#heatmap" + number).append("rect")
                 .attr("x", () => {
-                return(heatmapJson[i][j].index - 1) * gridSize;
+                return(displayJson[i][j].index - 1) * gridSize;
                 })
                 .attr("y", () => {
                         return(i) * gridSize;
                 })
                 .attr("width", gridSize)
-                        .attr("height", gridSize)
-                        .style("fill", () => {
-                        return colorScale(heatmapJson[i][j].rSquare);
+                .attr("height", gridSize)
+                .style("fill", () => {
+                        return colorScale(displayJson[i][j].rSquare);
                 })
-                // .on("click", (d) => {
-                //         console.log("CLICK");
-                //     var modelInfoTable = document.getElementById("model-info-table"  + number);
-                //
-                //     modelInfoTable.innerHTML = "";
-                //
-                //     document.getElementById("model-info-table-div" + number).style.height = "100%";
-                //
-                //     var newRow = modelInfoTable.insertRow(0);
-                //
-                //     //rSquared Value
-                //     newCol = newRow.insertCell(0);
-                //     newCol.innerHTML =  heatmapJson[d.modelCombo][d.modelYear].rSquare;
-                //     newCol.style.textAlign = "center";
-                //     newCol.width = "50%";
-                //     newCol.style.overflowX = "auto";
-                //
-                //     //Fitted Model
-                //     var newCol = newRow.insertCell(0);
-                //     newCol.innerHTML = heatmapJson[d.modelCombo][d.modelYear].fittedModel;
-                //     newCol.style.textAlign = "center";
-                //     newCol.width = "50%";
-                //     newCol.style.overflowX = "auto";
-                //
-                //     newRow = modelInfoTable.insertRow(0);
-                //
-                //     //rSquared Value
-                //     newCol = newRow.insertCell(0);
-                //     newCol.innerHTML = "<strong>rSquare Value</strong>";
-                //     newCol.style.textAlign = "center";
-                //     newCol.width = "50%";
-                //
-                //     //Fitted Model
-                //     var newCol = newRow.insertCell(0);
-                //     newCol.innerHTML = "<strong>Fitted Model</strong>";
-                //     newCol.style.textAlign = "center";
-                //     newCol.width = "50%";
-                //
-                //     newRow = modelInfoTable.insertRow(0);
-                //
-                //     //Title
-                //     newCol = newRow.insertCell(0);
-                //     newCol.colSpan = "2";
-                //     newCol.innerHTML = "<strong>Model Information</strong>";
-                //     newCol.style.textAlign = "center";
-                //     newCol.style.fontSize = "20px";
-                // })
-                // .on("mouseover", (d) => {
-                //         console.log("hover");
-                //     div.transition()
-                //         .duration(200)
-                //         .style("opacity", 1);
-                //     div.html(heatmapJson[d.modelCombo][d.modelYear].Date + "<br/>" + combinations[d.modelCombo] + "<br/>" + heatmapJson[d.modelCombo][d.modelYear].rSquare + "<br/>" + heatmapJson[d.modelCombo][d.modelYear].fittedModel)
-                //         .style("left", (d3.event.pageX) + "px")
-                //         .style("top", (d3.event.pageY - 28) + "px");
-                // })
-                // .on("mouseout", (d) => {
-                //         div.transition()
-                //         .duration(500)
-                //         .style("opacity", 0);
-                // })
                 .attr("class", "hour bordered");
         }
     }
 }
 
-function loadListeners(heatmapJsons){
+function loadListeners(displayJsons){
 
     var combinations = [];
 
@@ -526,13 +470,12 @@ function loadListeners(heatmapJsons){
         .attr("class", "tooltip")
         .style("opacity", 0);
 
+    //Load 'rect' listeners in a whole chunk or else they get replaced
     d3.selectAll("rect")
         .each( function(d, i){
             var i = i;
             d3.select(this)
                 .on("click", () => {
-                console.log(i);
-                console.log(models[i]);
                 var modelInfoTable = document.getElementById("model-info-table"  + models[i].dependentNumber);
 
                 modelInfoTable.innerHTML = "";
@@ -543,14 +486,14 @@ function loadListeners(heatmapJsons){
 
                 //rSquared Value
                 newCol = newRow.insertCell(0);
-                newCol.innerHTML =  heatmapJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].rSquare;
+                newCol.innerHTML =  displayJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].rSquare;
                 newCol.style.textAlign = "center";
                 newCol.width = "50%";
                 newCol.style.overflowX = "auto";
 
                 //Fitted Model
                 var newCol = newRow.insertCell(0);
-                newCol.innerHTML = heatmapJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].fittedModel;
+                newCol.innerHTML = displayJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].fittedModel;
                 newCol.style.textAlign = "center";
                 newCol.width = "50%";
                 newCol.style.overflowX = "auto";
@@ -579,13 +522,10 @@ function loadListeners(heatmapJsons){
                 newCol.style.fontSize = "20px";
             })
             .on("mouseover", () => {
-                console.log("hover");
                 div.transition()
                     .duration(200)
                     .style("opacity", 1);
-                console.log(i);
-                console.log(models[i]);
-                div.html(heatmapJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].Date + "<br/>" + combinations[models[i].modelCombo] + "<br/>" + heatmapJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].rSquare + "<br/>" + heatmapJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].fittedModel)
+                div.html(displayJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].Date + "<br/>" + combinations[models[i].modelCombo] + "<br/>" + displayJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].rSquare + "<br/>" + displayJsons[models[i].dependentNumber][models[i].modelCombo][models[i].modelYear].fittedModel)
                     .style("left", (d3.event.pageX) + "px")
                     .style("top", (d3.event.pageY - 28) + "px");
             })
@@ -593,12 +533,287 @@ function loadListeners(heatmapJsons){
                     div.transition()
                     .duration(500)
                     .style("opacity", 0);
-            })
+            });
         })
+}
+
+var clickableBoxData = [];
+
+function displayGraphs(){
+
+    var displayJsons = [];
+
+    document.getElementById("displayZone").innerHTML = "";
+
+    clickableBoxData = [];
+    count = 0;
+
+    console.log(tables);
+    for(var i =0; i < tables.length; i++){
+        displayJsons[i] = [];
+        for(var j = 0; j < tables[i]["results"].length; j++){
+            displayJsons[i][j] = makeDisplayJson(tables[i]["results"][j], i, j);
+        }
+        makeGraph(displayJsons[i], i);
+    }
+
+    loadGraphListeners();
+}
+
+const lineColors = [
+    '#84B641',
+    '#7030A0',
+    '#E1CD00',
+    '#A03123',
+    '#2ABDDA',
+    '#DE762D',
+    '#306DBE',
+    '#1E7640',
+    '#1b1e76',
+    '#f22790',
+    '#ed0a08',
+    '#0200ff',
+    '#e6c300'
+];
+
+function makeGraph(displayJson, number) {
+
+    var jsons = [];
+
+    for(var i = 0; i < displayJson.length; i++) {
+        jsons[i]= [{}];
+        for (var j = 0; j < displayJson[i].length; j++) {
+            jsons[i][j] = {modelCombo: i, modelYear: j, dependentNumber: number, rSquare: displayJson[i][j].rSquare};
+        }
+    }
+
+    var combinations = [];
+
+    for(var j = 0; j < tables[0].combinations.length; j++){
+        var combinationStr = "";
+        for(var k = 0; k < tables[0].combinations[j].length; k++){
+            combinationStr += tables[0].combinations[j][k];
+            if(k != (tables[0].combinations[j].length-1)){
+                combinationStr += " / ";
+            }
+        }
+        combinations[j] = combinationStr;
+    }
+
+
+    var dependentKeys = Object.keys(formatted_json.dependent);
+
+    document.getElementById("displayZone").innerHTML += "   <div class='row'>" +
+        "       <div class='col-2'></div>" +
+        "       <div class='col-8 graph-title'><strong>" + dependentKeys[number] + "</strong></div>" +
+        "       <div class='col-2'></div>" +
+        "   </div>" +
+        "   <div id='graph-row" + number + "' class=\"row graph-row\">\n" +
+        "    <div class=\"col-2\"></div>\n" +
+        "    <div id='graph-col' class=\"col-8\">\n" +
+        "      <div id='graph-container" + number + "' class='graph-container'></div>\n" +
+        "    </div>\n" +
+        "    <div id='legendCol" + number + "' class='col-2' style='padding-left: 0px'>" +
+        "       <div id='legend" + number + "' ></div>" +
+        "    </div>\n" +
+        "  </div>\n" +
+        "\n" +
+        "  <div id='model-info-table-container" + number + "' class=\"row\">\n" +
+        "    <div id='' class=\"col-2\"></div>\n" +
+        "    <div id='model-info-table-col" + number + "' class=\"col-8\">\n" +
+        "      <div id='model-info-table-div" + number + "'>\n" +
+        "        <table id='model-info-table" + number + "'>\n" +
+        "          <tr></tr>\n" +
+        "        </table>\n" +
+        "      </div>\n" +
+        "      <div class=\"col-2\"></div>\n" +
+        "    </div>\n" +
+        "  </div>\n";
+
+    var svg = d3.select("#graph-container" + number).append('svg')
+        .attr("width", "100%")
+        .attr("height", "100%")
+        .append("g");
+
+    var data = [];
+
+    var graph = svg.append('rect')
+        .attr("id", "graph" + number)
+        .attr("class", "graph")
+        .attr("width", "100%")
+        .attr("height", "100%")
+        .style("fill", "#d8d9d9");
+
+    var x = d3.scaleLinear()
+        .rangeRound([0, document.getElementById("graph-col").offsetWidth]);
+
+    var y = d3.scaleLinear()
+        .rangeRound([document.getElementById("graph-col").offsetHeight, 0]);
+
+    // Scale the range of the data
+    x.domain([0, jsons[0].length]);
+    y.domain([0, 1]);
+
+    // define the line
+    var valueline = d3.line()
+        .x(function (d) {
+            return x(d.modelYear);
+        })
+        .y(function (d) {
+            return y(d.rSquare);
+        });
+
+    var legendSvg = d3.select("#legend" + number)
+                    .append("svg")
+                    .attr("id", "legendSvg"+number)
+                    .attr("height", document.getElementById("legendCol"+number).offsetHeight);
+
+    const gridSize = 20;
+
+    for(var i = 0; i < jsons.length; i++) {
+
+        clickableBoxData[count] = {data: jsons, dependentNumber: number, number: i};
+
+        svg.append("path")
+            .data([jsons[i]])
+            .attr("id", "line"+count)
+            .attr("class", "line")
+            .style("stroke", lineColors[i])
+            .style("stroke-width", "3px")
+            .style("fill", "none")
+            .attr("d", valueline);
+
+        legendSvg.append("rect")
+            .attr("id", "clickableTile"+count)
+            .attr("class", "clickableTile")
+            .attr("x", 5)
+            .attr("y", () => {
+                return(i) * (gridSize + 10);
+            })
+            .attr("width", gridSize)
+            .attr("height", gridSize)
+            .style("fill", lineColors[i])
+            .style("padding-bottom", "10px");
+
+        legendSvg.append("rect")
+            .attr("class", "clickableBox")
+            .attr("x", 5 + gridSize)
+            .attr("y", () => {
+                return(i) * (gridSize + 10);
+            })
+            .attr("width", 200)
+            .attr("height", gridSize)
+            .style("fill", "#dedede");
+
+        legendSvg.append('text').text(combinations[i])
+            .attr("class", "clickableText")
+            .attr("x", 8 + gridSize)
+            .attr("y", () => {
+                return(i) * (gridSize + 10) + 15;
+            })
+            .attr('fill', 'black');
+
+        count++;
+    }
+    //
+    // // Add the y Axis
+    // svg.append("g")
+    //     .call(d3.axisLeft(y))
+    //         .attr("transform", "translate(20, 0)");
+    //
+    // // Add the x Axis
+    // svg.append("g")
+    //     .attr("transform", "translate(0," + document.getElementById("graph-col").offsetHeight - 50 + ")")
+    //     .call(d3.axisBottom(x));
 
 
 }
 
+function loadGraphListeners(){
+
+    var x = d3.scaleLinear()
+        .rangeRound([0, document.getElementById("graph-col").offsetWidth]);
+
+    var y = d3.scaleLinear()
+        .rangeRound([document.getElementById("graph-col").offsetHeight, 0]);
+
+    x.domain([0, formatted_json["date"]["Date"].length-11]);
+    y.domain([0, 1]);
+
+    var valueline = d3.line()
+        .x(function (d) {
+            return x(d.modelYear);
+        })
+        .y(function (d) {
+            return y(d.rSquare);
+        });
+
+    d3.selectAll(".clickableBox")
+        .each( function(d, i){
+            var i = i;
+            d3.select(this)
+                .on("click", () => {
+                    if(document.getElementById("line"+i).style.strokeWidth !== "0px") {
+                        d3.select("#line" + i)
+                            .style("stroke-width", "0px");
+
+                        d3.select("#clickableTile"+i)
+                            .style("fill", "gray");
+                    }
+                    else{
+                        d3.select("#line" + i)
+                            .style("stroke-width", "3px");
+
+                        d3.select("#clickableTile"+i)
+                            .style("fill", lineColors[clickableBoxData[i].number]);
+                    }
+                });
+            });
+
+    d3.selectAll(".clickableText")
+        .each( function(d, i){
+            var i = i;
+            d3.select(this)
+                .on("click", () => {
+                    if(document.getElementById("line"+i).style.strokeWidth !== "0px") {
+                        d3.select("#line" + i)
+                            .style("stroke-width", "0px");
+
+                        d3.select("#clickableTile"+i)
+                            .style("fill", "gray");
+                    }
+                    else{
+                        d3.select("#line" + i)
+                            .style("stroke-width", "3px");
+
+                        d3.select("#clickableTile"+i)
+                            .style("fill", lineColors[clickableBoxData[i].number]);
+                    }
+                });
+            });
+
+    d3.selectAll(".clickableTile")
+        .each( function(d, i){
+            var i = i;
+            d3.select(this)
+                .on("click", () => {
+                    if(document.getElementById("line"+i).style.strokeWidth !== "0px") {
+                        d3.select("#line" + i)
+                            .style("stroke-width", "0px");
+
+                        d3.select(this)
+                            .style("fill", "gray");
+                    }
+                    else{
+                        d3.select("#line" + i)
+                            .style("stroke-width", "3px");
+
+                        d3.select(this)
+                            .style("fill", lineColors[clickableBoxData[i].number]);
+                    }
+                });
+            });
+}
 
 function recalculateSavings(dependentNumber){
     tables[dependentNumber] = findSavings(formatted_json, tables[dependentNumber], dependentNumber);
@@ -777,7 +992,6 @@ function fillDataTable(json){
     document.getElementById("calculate-btn-row").style.paddingTop = "30px";
     document.getElementById("clear-btn").style.display = "inline";
     document.getElementById("data-table-div").style.height = "500px";
-    document.getElementById("graph-col").style.display = "inline";
 
     getTypes();
 }
@@ -818,12 +1032,17 @@ function clearData(){
     document.getElementById("filename-display-row").style.paddingTop = "0px";
     document.getElementById("data-table-div").style.height = "0px";
     document.getElementById("alert-box").style.display = "none";
-    document.getElementById("graph-col").style.display = "none";
     document.getElementById("clear-btn").style.display = "none";
     document.getElementById("calculate-btn").style.display = "none";
     document.getElementById("calculate-btn-row").style.paddingTop = "0px";
-    document.getElementById("heatMaps").innerHTML = "";
+    document.getElementById("displayZone").innerHTML = "";
+    document.getElementById("display-format-col").style.display = "none";
+}
 
+function date(){
+    const date = new Date();
+    const dateStr = date.getMonth() + '-' + date.getDate() + '-' + date.getFullYear();
+    console.log(dateStr);
 }
 
 
