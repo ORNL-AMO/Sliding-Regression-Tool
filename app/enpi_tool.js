@@ -609,7 +609,7 @@ function makeGraph(displayJson, number) {
         "       <div class='col-2'></div>" +
         "   </div>" +
         "   <div id='graph-row" + number + "' class=\"row graph-row\">\n" +
-        "    <div class=\"col-2\"></div>\n" +
+        "    <div id='y-axis" + number + "' class=\"col-2\" style='padding-right: 0px'></div>\n" +
         "    <div id='graph-col' class=\"col-8\">\n" +
         "      <div id='graph-container" + number + "' class='graph-container'></div>\n" +
         "    </div>\n" +
@@ -715,12 +715,19 @@ function makeGraph(displayJson, number) {
 
         count++;
     }
-    //
-    // // Add the y Axis
-    // svg.append("g")
-    //     .call(d3.axisLeft(y))
-    //         .attr("transform", "translate(20, 0)");
-    //
+
+
+    var yAxisSvg = d3.select("#y-axis" + number).append('svg')
+        .attr("width", "100%")
+        .attr("height", "100%");
+
+    console.log(document.getElementById("y-axis" + number).offsetWidth);
+
+    // Add the y Axis
+    yAxisSvg.append("g")
+        .call(d3.axisLeft(y))
+            .attr("transform", "translate(" + (document.getElementById("y-axis" + number).offsetWidth - 18) + ", 0)");
+
     // // Add the x Axis
     // svg.append("g")
     //     .attr("transform", "translate(0," + document.getElementById("graph-col").offsetHeight - 50 + ")")
