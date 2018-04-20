@@ -12,7 +12,7 @@ function getCombinations(array) {
 
 
 //TODO Needs work
-function findResults(json){
+function findResults(json, dependentNumber){
 
     var table = {
         combinations: [],
@@ -62,13 +62,15 @@ function findResults(json){
         }
 
         for(var j = 0; j < (rows - 11); j++) {
-            var electricity = json.dependent[dependentKeys[0]].slice(j, j + 12);
+            var dependent = json.dependent[dependentKeys[dependentNumber]].slice(j, j + 12);
             var independentVariables = [];
+            var independentNames = [];
 
             for(var k = 0; k < independentCombinations[i].length; k++) {
                 independentVariables[k] = json.independent[independentCombinations[i][k]].slice(j, j + 12);
+                independentNames[k] = independentCombinations[i][k];
             }
-            var model = calc3(5, electricity, independentVariables);
+            var model = calc3(5, dependent, independentVariables, independentNames);
 
             results.Date[j] = json.date[dateKeys[0]][j];
 
@@ -100,7 +102,6 @@ function findSavings(json, table, dependentNumber){
     //# The savings numbers are caculated in this section with base year as the first 12 months and model year as year2.
     //# we use model6 to determine savings, in the tool the user should be able to choose model and model year.
     //# Lets fix the base year to be first 12 months for the initial version of the tool.
-
 
     var rows = json.date.Date.length;
     var independentKeys = Object.keys(json.independent);
@@ -146,11 +147,7 @@ function findSavings(json, table, dependentNumber){
         savings["%Savings"][i] = ((1 - ((savings["Total Model " + dependent][0] * savings["Total Actual " + dependent][i]) / (savings["Total Actual " + dependent][0] * savings["Total Model " + dependent][i])))*100).toFixed(2) + "%";
     }
 
-    console.log(savings);
-
     table.savings = savings;
-
-    console.log(table);
 
     return table;
 }
@@ -202,8 +199,82 @@ function findSavingsPoint(json, table, dependentNumber, year, model){
         savings["Total Model " + dependent][i] += table.results[model]["Intercept" + model][year] * 12;
         savings["Total Actual " + dependent][i] = sum;
 
-        savings["%Savings"][i] = ((1 - ((savings["Total Model " + dependent][0] * savings["Total Actual " + dependent][i]) / (savings["Total Actual " + dependent][0] * savings["Total Model " + dependent][i])))*100).toFixed(2) + "%";
+        savings["%Savings"][i] = Number(((1 - ((savings["Total Model " + dependent][0] * savings["Total Actual " + dependent][i]) / (savings["Total Actual " + dependent][0] * savings["Total Model " + dependent][i])))).toFixed(2));
     }
 
     return savings;
 }
+
+function findSavingsLine(displayJsons) {
+    console.log(displayJsons);
+
+    var savingsLines = [];
+
+    for(var i = 0; i < displayJsons.length; i++){
+        savingsLines[i] = [];
+        for(var j = 0; j < displayJsons[i].length; j++){
+            savingsLines[i][j] = [];
+            for(var k = 0; k < displayJsons[i][j].length; k++){
+                savingsLines[i][j][k] = displayJsons[i][j][k]["savings"]["%Savings"][displayJsons[i][j][k]["savings"]["%Savings"].length-1];
+            }
+        }
+    }
+
+    return savingsLines;
+}
+
+/*
+function findSavingsLine(table, json, dependentNumber){
+
+    console.log(table);
+    console.log(json);
+
+    var savings = [];
+    var rows = json.date.Date.length;
+
+    var modelEnergyBaselines = [];
+    var modelEnergySavings = [];
+
+    for(var i = 0; i < table["combinations"].length; i++) {
+        var independentKeys = Object.keys(table["combinations"][i]);
+        modelEnergyBaselines[i] = [];
+
+        for(var k = 0; k < (rows - 11); k++){
+            var modelEnergyBaseline = 0;
+            for (var j = 0; j < independentKeys.length; j++) {
+
+                var sum = 0;
+                for(var z = 0; z < 12; z++){
+                    sum += Number((json.independent[table["combinations"][i][j]].slice(0, 12))[z])
+                }
+                modelEnergyBaseline += (table["results"][i][table["combinations"][i][j]+"Coeff"+i][k] * sum);
+            }
+            modelEnergyBaselines[i][k] = modelEnergyBaseline;
+        }
+    }
+
+    for(var i = 0; i < table["combinations"].length; i++) {
+        var independentKeys = Object.keys(table["combinations"][i]);
+        modelEnergySavings[i] = [];
+
+        for(var k = 0; k < (rows - 11); k++){
+            var modelEnergySaving = 0;
+            for (var j = 0; j < independentKeys.length; j++) {
+
+                var sum = 0;
+                for(var z = 0; z < 12; z++){
+                    sum += Number((json.independent[table["combinations"][i][j]].slice((rows - 12), (rows - 12) + 12))[z]);
+                }
+                modelEnergySaving += (table["results"][i][table["combinations"][i][j]+"Coeff"+i][k] * sum);
+            }
+            modelEnergySavings[i][k] = modelEnergySaving;
+        }
+    }
+
+    var lines = [];
+
+
+    console.log(modelEnergyBaselines);
+    console.log(modelEnergySavings);
+}
+*/

@@ -1,4 +1,6 @@
 d3 = require('d3');
+Json2csvParser = require('json2csv').Parser;
+saveAs = require('file-saver').saveAs;
 
 const testJson = {
     date: {
@@ -309,6 +311,8 @@ function setupENPI(){
 
 var models = [];
 var count = 0;
+var savingCount = 0;
+var savingsLines = [];
 
 function calcENPI(){
 
@@ -328,13 +332,30 @@ function calcENPI(){
         reformatJson();
 
         tables = [];
+
         for(var i = 0; i < numberOfDependents; i++) {
-            tables[i] = findResults(formatted_json);
+            tables[i] = findResults(formatted_json, i);
+
+            //findSavingsLine(tables[i], formatted_json, i);
+
         }
+
+        var displayJsons = [];
+        for(var i =0; i < tables.length; i++){
+            displayJsons[i] = [];
+            for(var j = 0; j < tables[i]["results"].length; j++){
+                displayJsons[i][j] = makeDisplayJson(tables[i]["results"][j], i, j);
+            }
+        }
+
+        savingsLines = findSavingsLine(displayJsons);
+
 
         document.getElementById("displayZone").innerHTML = "";
 
         document.getElementById("display-format-col").style.display = "inline";
+        //document.getElementById("export-btn").style.display = "inline";
+
 
         //Works, but do heat map first
         //loadModelContainer(numberOfDependents);
@@ -362,7 +383,6 @@ function displayHeatmaps(){
     models = [];
     count = 0;
 
-    console.log(tables);
     for(var i =0; i < tables.length; i++){
         displayJsons[i] = [];
         for(var j = 0; j < tables[i]["results"].length; j++){
@@ -384,9 +404,11 @@ function makeHeatmap(displayJson, number){
                                                         "       <div class='col-2'></div>" +
                                                         "   </div>" +
                                                         "   <div id='heatmap-row" + number + "' class=\"row heatmap-row\">\n" +
-                                                        "    <div class=\"col-2\"></div>\n" +
-                                                        "    <div class=\"col-8\">\n" +
-                                                        "      <div id='heatmap-container" + number + "' class='heatmap-container'></div>\n" +
+                                                        "    <div id='heatmap-y-axis-col" + number + "' class=\"col-2 heatmap-y-axis-col\" style='padding-right: 0px'>" +
+                                                        "       <div id='y-axis" + number + "' class='heatmap-y-axis'></div>" +
+                                                        "   </div>\n" +
+                                                        "    <div class=\"col-8\" style='padding-left: 2px'>\n" +
+                                                        "      <div id='heatmap-container" + number + "' class='heatmap-container' style='padding-left: 2px'></div>\n" +
                                                         "    </div>\n" +
                                                         "    <div class=\"col-2\"></div>\n" +
                                                         "  </div>\n" +
@@ -407,9 +429,9 @@ function makeHeatmap(displayJson, number){
 
     container.innerHTML = "";
 
-    const margin = { top: 50, right: 0, bottom: 100, left: 30 },
-        width = container.offsetWidth,
+    const margin = { top: 0, right: 0, bottom: 0, left: 30 },
         gridSize = Math.floor(20),
+        width = (gridSize * displayJson[0].length) + margin.left,
         height = gridSize * displayJson.length;
 
     var colorDomain = d3.extent(displayJson, function(d){
@@ -420,13 +442,76 @@ function makeHeatmap(displayJson, number){
         .domain([0, 1])
         .range(["red","green"]);
 
-    d3.select("#heatmap-container" + number)
+    var svg = d3.select("#heatmap-container" + number)
         .append("svg")
         .attr("id", "heatmap" + number)
         .attr("width", function(){
-            return (gridSize * displayJson[0].length) + margin.left + margin.right;
+            return (gridSize * displayJson[0].length) + margin.left;
         })
-        .attr("height", height);
+        .attr("height", height + 70)
+        .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var dates = [];
+
+    for(var i = 0; i < displayJson[0].length; i++){
+        dates[i] = displayJson[0][i]["Date"];
+    }
+
+    var colLabels = svg.append("g")
+        .selectAll(".colLabelg")
+        .data(dates)
+        .enter()
+        .append("text")
+        .text(function (d) { return d; })
+        .attr("x", 0)
+        .attr("y", function (d, i) { return i * gridSize; })
+        .style("text-anchor", "left")
+        .attr("transform", "translate( -5 , 65) rotate (-90)")
+        .style("font-size", "12px");
+
+    // var yAxisSvg = d3.select("#y-axis" + number)
+    //                 .append('svg')
+    //                     .attr("id", "heatmap-y-axis-svg" + number)
+    //                     .attr("width", document.getElementById("heatmap-y-axis-col"+number).offsetWidth)
+    //                     .attr("height", document.getElementById("heatmap-y-axis-col"+number).offsetHeight);
+
+    var combinations = [];
+
+    for(var j = 0; j < tables[0].combinations.length; j++){
+        var combinationStr = "";
+        for(var k = 0; k < tables[0].combinations[j].length; k++){
+            combinationStr += tables[0].combinations[j][k];
+            if(k != (tables[0].combinations[j].length-1)){
+                combinationStr += " / ";
+            }
+        }
+        combinations[j] = combinationStr;
+    }
+
+    for(var i = 0; i < displayJson[0].length; i++){
+        dates[i] = displayJson[0][i]["Date"];
+    }
+
+
+    // var rowLabels = yAxisSvg.append("g")
+    //     .selectAll(".rowLabelg")
+    //     .data(combinations)
+    //     .enter()
+    //     .append("text")
+    //     .text(function (d) { return d; })
+    //     .attr("x", 0)
+    //     .attr("y", function (d, i) { return i * gridSize; })
+    //     .style("text-anchor", "end")
+    //     .attr("transform", "translate(" + document.getElementById("heatmap-y-axis-col"+number).offsetWidth + ", 85)")
+    //     .style("font-size", "12px");
+
+
+    document.getElementById("y-axis"+number).innerHTML = "";
+    for(var i = 0; i < combinations.length; i++){
+        document.getElementById("y-axis"+number).innerHTML += "<div style='position: relative; top: " + (71) +"px; text-align: right; font-size:12px; padding-top: 2px;'>" + combinations[i] + "</div>";
+    }
+
 
     for(var i = 0; i < displayJson.length; i++) {
         for (var j = 0; j < displayJson[i].length; j++) {
@@ -434,12 +519,12 @@ function makeHeatmap(displayJson, number){
             models[count] = {modelCombo: i, modelYear: j, dependentNumber: number};
             count++;
 
-            d3.select("#heatmap" + number).append("rect")
+            svg.append("rect")
                 .attr("x", () => {
                 return(displayJson[i][j].index - 1) * gridSize;
                 })
                 .attr("y", () => {
-                        return(i) * gridSize;
+                        return(i) * gridSize + 70;
                 })
                 .attr("width", gridSize)
                 .attr("height", gridSize)
@@ -547,14 +632,20 @@ function displayGraphs(){
 
     clickableBoxData = [];
     count = 0;
+    savingCount = 0;
 
-    console.log(tables);
     for(var i =0; i < tables.length; i++){
         displayJsons[i] = [];
         for(var j = 0; j < tables[i]["results"].length; j++){
             displayJsons[i][j] = makeDisplayJson(tables[i]["results"][j], i, j);
         }
+        makeGraphElements(i);
+
+    }
+
+    for(var i = 0; i < tables.length; i++){
         makeGraph(displayJsons[i], i);
+        makeSavingsGraph(displayJsons[i], i, savingsLines[i]);
     }
 
     loadGraphListeners();
@@ -573,8 +664,70 @@ const lineColors = [
     '#f22790',
     '#ed0a08',
     '#0200ff',
-    '#e6c300'
+    '#e6c300',
+    '#3ded3e',
+    '#7e62ed',
+    '#ff5e00',
+    '#00c9ed',
+    '#5bed9e',
+    '#5c4424',
+    '#02b318',
+    '#ff0087',
+    '#4f00ed',
+    '#519fa8'
 ];
+
+function makeGraphElements(number){
+
+    var dependentKeys = Object.keys(formatted_json.dependent);
+
+    document.getElementById("displayZone").innerHTML += "   <div class='row'>" +
+                                                        "       <div class='col-2'></div>" +
+                                                        "       <div class='col-8 graph-title'><strong>" + dependentKeys[number] + "</strong></div>" +
+                                                        "       <div class='col-2'></div>" +
+                                                        "   </div>" +
+                                                        "   <div id='graph-row" + number + "' class=\"row graph-row\">\n" +
+                                                        "    <div id='y-axis" + number + "' class=\"col-2\" style='padding-right: 0px'></div>\n" +
+                                                        "    <div id='graph-col' class=\"col-8\">\n" +
+                                                        "      <div id='graph-container" + number + "' class='graph-container'></div>\n" +
+                                                        "      <div id='savings-graph-container" + number + "' class='savings-graph-container'></div>\n" +
+                                                        "    </div>\n" +
+                                                        "    <div id='legendCol" + number + "' class='col-2' style='padding-left: 0px'>" +
+                                                        "       <div id='legend" + number + "' ></div>" +
+                                                        "    </div>\n" +
+                                                        "  </div>\n" +
+                                                        "   <div id='graph-row" + number + "' class=\"row graph-row\">\n" +
+                                                        "    <div class=\"col-2\" style='padding: 0px'></div>\n" +
+                                                        "    <div id='graph-col' class=\"col-8\">\n" +
+                                                        "       <div id='range-display-row" + number + "' class='row range-display-row'>" +
+                                                        "           <div class='col-2' style='padding: 0px'></div>" +
+                                                        "           <div id='range-display-start-col" + number + "' class='col-3' style='padding: 0px'>" +
+                                                        "               <div id='range-display-start" + number + "' class='range-display-start'></div>" +
+                                                        "           </div>" +
+                                                        "           <div class='col-2' style='padding: 0px'></div>" +
+                                                        "           <div id='range-display-end-col" + number + "' class='col-3' style='padding: 0px'>" +
+                                                        "               <div id='range-display-end" + number + "' class='range-display-end'></div>" +
+                                                        "           </div>" +
+                                                        "           <div class='col-2' style='padding: 0px'></div>" +
+                                                        "       </div>\n" +
+                                                        "    </div>\n" +
+                                                        "    <div class='col-2' style='padding: 0px'>" +
+                                                        "    </div>\n" +
+                                                        "  </div>\n" +
+                                                        "\n" +
+                                                        "  <div id='model-info-table-container" + number + "' class=\"row\">\n" +
+                                                        "    <div id='' class=\"col-2\"></div>\n" +
+                                                        "    <div id='model-info-table-col" + number + "' class=\"col-8\">\n" +
+                                                        "      <div id='model-info-table-div" + number + "'>\n" +
+                                                        "        <table id='model-info-table" + number + "'>\n" +
+                                                        "          <tr></tr>\n" +
+                                                        "        </table>\n" +
+                                                        "      </div>\n" +
+                                                        "      <div class=\"col-2\"></div>\n" +
+                                                        "    </div>\n" +
+                                                        "  </div>\n";
+
+}
 
 function makeGraph(displayJson, number) {
 
@@ -601,54 +754,25 @@ function makeGraph(displayJson, number) {
     }
 
 
-    var dependentKeys = Object.keys(formatted_json.dependent);
-
-    document.getElementById("displayZone").innerHTML += "   <div class='row'>" +
-        "       <div class='col-2'></div>" +
-        "       <div class='col-8 graph-title'><strong>" + dependentKeys[number] + "</strong></div>" +
-        "       <div class='col-2'></div>" +
-        "   </div>" +
-        "   <div id='graph-row" + number + "' class=\"row graph-row\">\n" +
-        "    <div id='y-axis" + number + "' class=\"col-2\" style='padding-right: 0px'></div>\n" +
-        "    <div id='graph-col' class=\"col-8\">\n" +
-        "      <div id='graph-container" + number + "' class='graph-container'></div>\n" +
-        "    </div>\n" +
-        "    <div id='legendCol" + number + "' class='col-2' style='padding-left: 0px'>" +
-        "       <div id='legend" + number + "' ></div>" +
-        "    </div>\n" +
-        "  </div>\n" +
-        "\n" +
-        "  <div id='model-info-table-container" + number + "' class=\"row\">\n" +
-        "    <div id='' class=\"col-2\"></div>\n" +
-        "    <div id='model-info-table-col" + number + "' class=\"col-8\">\n" +
-        "      <div id='model-info-table-div" + number + "'>\n" +
-        "        <table id='model-info-table" + number + "'>\n" +
-        "          <tr></tr>\n" +
-        "        </table>\n" +
-        "      </div>\n" +
-        "      <div class=\"col-2\"></div>\n" +
-        "    </div>\n" +
-        "  </div>\n";
+    // 2. Use the margin convention practice
+    var margin = {top: 10, right: 15, bottom: 65, left: 35}
+        , width = document.getElementById("graph-container" + number).offsetWidth - margin.left - margin.right // Use the window's width
+        , height = document.getElementById("graph-container" + number).offsetHeight - margin.top - margin.bottom; // Use the window's height
 
     var svg = d3.select("#graph-container" + number).append('svg')
-        .attr("width", "100%")
-        .attr("height", "100%")
-        .append("g");
-
-    var data = [];
-
-    var graph = svg.append('rect')
-        .attr("id", "graph" + number)
-        .attr("class", "graph")
-        .attr("width", "100%")
-        .attr("height", "100%")
-        .style("fill", "#d8d9d9");
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     var x = d3.scaleLinear()
-        .rangeRound([0, document.getElementById("graph-col").offsetWidth]);
+        .rangeRound([0, width]);
+
+    var x_date = d3.scaleLinear()
+        .rangeRound([0, width]);
 
     var y = d3.scaleLinear()
-        .rangeRound([document.getElementById("graph-col").offsetHeight, 0]);
+        .rangeRound([height, 0]);
 
     // Scale the range of the data
     x.domain([0, jsons[0].length]);
@@ -663,12 +787,53 @@ function makeGraph(displayJson, number) {
             return y(d.rSquare);
         });
 
+    var graph = svg.append('rect')
+        .attr("id", "graph" + number)
+        .attr("class", "graph")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .attr("transform", "translate(" + (-margin.left) + "," + (-margin.top) + ")")
+        .style("fill", "#d8d9d9");
+
+
+    var data = [];
+
+    for(var i = 0; i < displayJson[0].length; i++){
+        data[i] = {"date": new Date(parseInt(displayJson[0][i]["Date"].substring(0, 4)),parseInt(displayJson[0][i]["Date"].substring(5, 7)),parseInt(displayJson[0][i]["Date"].substring(8, 10))), "value": i};
+    }
+
+    x_date.domain([data[0].date, data[data.length - 1].date]);
+
+    // Add the X Axis
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x_date)
+            .tickFormat(d3.timeFormat("%Y-%m-%d")))
+        .selectAll("text")
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", ".15em")
+        .attr("transform", "rotate(-65)");
+
+    // svg.append("g")
+    //     .attr("class", "x-axis")
+    //     .attr("transform", "translate(0," + height + ")")
+    //     .call(d3.axisBottom(x)); // Create an axis component with d3.axisBottom
+
+    svg.append("g")
+        .attr("class", "y-axis")
+        .call(d3.axisLeft(y)); // Create an axis component with d3.axisLeft
+
+    var data = [];
+
     var legendSvg = d3.select("#legend" + number)
                     .append("svg")
                     .attr("id", "legendSvg"+number)
                     .attr("height", document.getElementById("legendCol"+number).offsetHeight);
 
     const gridSize = 20;
+    console.log(jsons);
 
     for(var i = 0; i < jsons.length; i++) {
 
@@ -715,26 +880,97 @@ function makeGraph(displayJson, number) {
 
         count++;
     }
-
-
-    var yAxisSvg = d3.select("#y-axis" + number).append('svg')
-        .attr("width", "100%")
-        .attr("height", "100%");
-
-    console.log(document.getElementById("y-axis" + number).offsetWidth);
-
-    // Add the y Axis
-    yAxisSvg.append("g")
-        .call(d3.axisLeft(y))
-            .attr("transform", "translate(" + (document.getElementById("y-axis" + number).offsetWidth - 18) + ", 0)");
-
-    // // Add the x Axis
-    // svg.append("g")
-    //     .attr("transform", "translate(0," + document.getElementById("graph-col").offsetHeight - 50 + ")")
-    //     .call(d3.axisBottom(x));
-
-
 }
+
+function makeSavingsGraph(displayJson, number, savings){
+    var jsons = [];
+
+    for(var i = 0; i < savings.length; i++) {
+        jsons[i]= [{}];
+        for (var j = 0; j < savings[i].length; j++) {
+            jsons[i][j] = {modelCombo: i, modelYear: j, dependentNumber: number, savingsPercent: savings[i][j]};
+        }
+    }
+
+    var combinations = [];
+
+    for(var j = 0; j < tables[0].combinations.length; j++){
+        var combinationStr = "";
+        for(var k = 0; k < tables[0].combinations[j].length; k++){
+            combinationStr += tables[0].combinations[j][k];
+            if(k != (tables[0].combinations[j].length-1)){
+                combinationStr += " / ";
+            }
+        }
+        combinations[j] = combinationStr;
+    }
+    
+    // 2. Use the margin convention practice
+    var margin = {top: 10, right: 15, bottom: 10, left: 35}
+        , width = document.getElementById("savings-graph-container" + number).offsetWidth - margin.left - margin.right // Use the window's width
+        , height = document.getElementById("savings-graph-container" + number).offsetHeight - margin.top - margin.bottom; // Use the window's height
+
+    var svg = d3.select("#savings-graph-container" + number).append('svg')
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var x = d3.scaleLinear()
+        .rangeRound([0, width]);
+
+    var x_date = d3.scaleLinear()
+        .rangeRound([0, width]);
+
+    var y = d3.scaleLinear()
+        .rangeRound([height, 0]);
+
+    // Scale the range of the data
+    x.domain([0, jsons[0].length]);
+
+
+
+    // define the line
+    var valueline = d3.line()
+        .x(function (d) {
+            return x(d.modelYear);
+        })
+        .y(function (d) {
+            return y(d.savingsPercent);
+        });
+
+    var graph = svg.append('rect')
+        .attr("id", "savings-graph" + number)
+        .attr("class", "graph")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .attr("transform", "translate(" + (-margin.left) + "," + (-margin.top) + ")")
+        .style("fill", "#d8d9d9");
+
+    for(var i = 0; i < jsons.length; i++) {
+
+        y.domain(d3.extent(jsons[i], function(d) { return d.savingsPercent; }));
+
+        svg.append("path")
+            .data([jsons[i]])
+            .attr("id", "savingsLine"+savingCount)
+            .attr("class", "line")
+            .style("stroke", lineColors[i])
+            .style("stroke-width", "3px")
+            .style("fill", "none")
+            .attr("d", valueline);
+
+        savingCount++;
+    }
+
+    svg.append("g")
+        .attr("class", "y-axis")
+        .call(d3.axisLeft(y)); // Create an axis component with d3.axisLeft
+
+    document.getElementById("range-display-start" + number).innerHTML = "Start Period: " + displayJson[0][0]["Date"];
+    document.getElementById("range-display-end" + number).innerHTML = "End Period: " + displayJson[0][displayJson[0].length-1]["Date"];
+}
+
 
 function loadGraphListeners(){
 
@@ -764,11 +1000,17 @@ function loadGraphListeners(){
                         d3.select("#line" + i)
                             .style("stroke-width", "0px");
 
+                        d3.select("#savingsLine" + i)
+                            .style("stroke-width", "0px");
+
                         d3.select("#clickableTile"+i)
                             .style("fill", "gray");
                     }
                     else{
                         d3.select("#line" + i)
+                            .style("stroke-width", "3px");
+
+                        d3.select("#savingsLine" + i)
                             .style("stroke-width", "3px");
 
                         d3.select("#clickableTile"+i)
@@ -786,11 +1028,17 @@ function loadGraphListeners(){
                         d3.select("#line" + i)
                             .style("stroke-width", "0px");
 
+                        d3.select("#savingsLine" + i)
+                            .style("stroke-width", "0px");
+
                         d3.select("#clickableTile"+i)
                             .style("fill", "gray");
                     }
                     else{
                         d3.select("#line" + i)
+                            .style("stroke-width", "3px");
+
+                        d3.select("#savingsLine" + i)
                             .style("stroke-width", "3px");
 
                         d3.select("#clickableTile"+i)
@@ -808,11 +1056,17 @@ function loadGraphListeners(){
                         d3.select("#line" + i)
                             .style("stroke-width", "0px");
 
+                        d3.select("#savingsLine" + i)
+                            .style("stroke-width", "0px");
+
                         d3.select(this)
                             .style("fill", "gray");
                     }
                     else{
                         d3.select("#line" + i)
+                            .style("stroke-width", "3px");
+
+                        d3.select("#savingsLine" + i)
                             .style("stroke-width", "3px");
 
                         d3.select(this)
@@ -1042,14 +1296,51 @@ function clearData(){
     document.getElementById("clear-btn").style.display = "none";
     document.getElementById("calculate-btn").style.display = "none";
     document.getElementById("calculate-btn-row").style.paddingTop = "0px";
+    //document.getElementById("export-btn").style.display = "none";
     document.getElementById("displayZone").innerHTML = "";
     document.getElementById("display-format-col").style.display = "none";
 }
 
+function exportData(){
+
+    var export_formatJson = {};
+    var fields = [];
+
+    fields[0] = ["Date"];
+
+    export_formatJson.Date = "";
+    for(var i = 0; i < tables[0]["results"][0]["Date"].length; i++){
+        export_formatJson.Date += tables[0]["results"][0]["Date"][i][0] + ",";
+    }
+
+    for(var i = 0; i < tables[0]["results"].length; i++){
+
+        var outputKeys = Object.keys(tables[0]["results"][i]);
+
+        for(var j = 0; j < outputKeys.length; j++) {
+            fields[i*outputKeys.length+j] = outputKeys[j];
+            export_formatJson[fields[i*outputKeys.length+j]] = "";
+
+            for(var k = 0; k < tables[0]["results"][i][outputKeys[j]].length; k++){
+                export_formatJson[fields[i*outputKeys.length+j]] += tables[0]["results"][i][outputKeys[j]][k] + ",";
+            }
+        }
+    }
+
+    const json2csvParser = new Json2csvParser({ fields });
+    const csv = json2csvParser.parse(export_formatJson);
+
+    var file = new File([csv], "export.xlsx", {type: "text/plain;charset=utf-8"});
+
+    saveAs(file);
+}
+
+
 function date(){
     const date = new Date();
     const dateStr = date.getMonth() + '-' + date.getDate() + '-' + date.getFullYear();
-    console.log(dateStr);
 }
+
+
 
 

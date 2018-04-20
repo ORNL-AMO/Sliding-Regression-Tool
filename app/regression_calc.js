@@ -767,7 +767,7 @@ function calc2(){
     return model;
 }
 
-function calc3(num, dependent, independent){
+function calc3(num, dependent, independent, independentNames){
 
     var model = {
         fittedModel: "",
@@ -818,9 +818,8 @@ function calc3(num, dependent, independent){
             var SE = 0;
             var ST = 0;
 
-
             for (i = 1; i <=M; i++) {
-                output += " + (" + roundSigDig(regrCoeff[i], sigDig) + ")X" + i;
+                output += " + (" + roundSigDig(regrCoeff[i], sigDig) + ")" + independentNames[i-1];
                 model.params[i-1] = roundSigDig(regrCoeff[i], sigDig);
             }
 

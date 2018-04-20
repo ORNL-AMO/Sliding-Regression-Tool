@@ -119,6 +119,32 @@ html, body {
     cursor: not-allowed;
 }
 
+#export-col {
+    text-align: center;
+}
+
+#export-btn {
+    font-size: 25px;
+    background-color: #14c718;
+    color: white;
+    border-radius: 6px;
+    border: 0px;
+    border-top: none;
+    border-bottom: 3px solid #838383;
+    display: none;
+}
+
+#export-btn:focus {
+    outline: none !important;
+}
+
+#export-btn:active {
+    outline: none !important;
+    background-color: #12b416;
+    border-top: 3px solid #ffffff;
+    border-bottom: none;
+}
+
 #clear-col {
     text-align: center;
 }
@@ -400,7 +426,13 @@ tr:nth-child(odd) {
 }
 
 .graph-container{
-    height: 400px;
+    height: 500px;
+    width: 100%;
+    /*overflow: hidden;*/
+}
+
+.savings-graph-container {
+    height: 250px;
     width: 100%;
     box-shadow: 0px 5px #c6c6c6;
 }
@@ -409,6 +441,30 @@ tr:nth-child(odd) {
     padding: 0px;
 }
 
+.heatmap-y-axis-col {
+    overflow: auto;
+}
+
+.heatmap-y-axis {
+    overflow: auto;
+    height: 100%;
+    width: 100%;
+    white-space: nowrap;
+}
+
+.range-display-row {
+    height: 50px;
+    background-color: #d4d4d4;
+    box-shadow: 0px 5px #c1c1c1;
+}
+
+.range-display-start {
+    text-align: center;
+}
+
+.range-display-end {
+    text-align: center;
+}
 
 /***********************************/
 rect.bordered {
