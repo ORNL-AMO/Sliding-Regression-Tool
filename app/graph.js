@@ -1,7 +1,5 @@
 d3 = require('d3');
 
-makeGraph();
-
 function makeGraph() {
     d3.select("#graph").selectAll('svg').remove();
 
