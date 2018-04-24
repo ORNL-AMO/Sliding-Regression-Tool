@@ -1,5 +1,6 @@
 d3 = require('d3');
 Json2csvParser = require('json2csv').Parser;
+converter = require('json-2-csv');
 saveAs = require('file-saver').saveAs;
 
 const testJson = {
@@ -132,17 +133,6 @@ dropZone.addEventListener('drop', function handleDrop(e) {
 
 function formatDisplayJson(){
 
-    // for(var i = 0; i < raw_json[0].length; i++){
-    //     formatted_json[raw_json[0][i]] = [];
-    // }
-    //
-    //
-    // for( var i = 0; i < raw_json.length-1; i++) {
-    //     for (var j = 0; j < raw_json[0].length; j++) {
-    //         formatted_json[raw_json[0][j]][i] = raw_json[i+1][j];
-    //     }
-    // }
-
     display_json["date"];
     display_json["values"];
 
@@ -154,7 +144,6 @@ function formatDisplayJson(){
             display_json["values"] = [];
         }
     }
-
     for(var i = 0; i < raw_json[0].length; i++){
         if(i == 0){
             display_json["date"][raw_json[0][i]] = [];
@@ -180,17 +169,6 @@ function formatDisplayJson(){
 }
 
 function reformatJson(){
-
-    // for(var i = 0; i < raw_json[0].length; i++){
-    //     formatted_json[raw_json[0][i]] = [];
-    // }
-    //
-    //
-    // for( var i = 0; i < raw_json.length-1; i++) {
-    //     for (var j = 0; j < raw_json[0].length; j++) {
-    //         formatted_json[raw_json[0][j]][i] = raw_json[i+1][j];
-    //     }
-    // }
 
     getTypes();
 
@@ -354,7 +332,7 @@ function calcENPI(){
         document.getElementById("displayZone").innerHTML = "";
 
         document.getElementById("display-format-col").style.display = "inline";
-        //document.getElementById("export-btn").style.display = "inline";
+        document.getElementById("export-btn").style.display = "inline";
 
 
         //Works, but do heat map first
@@ -368,8 +346,9 @@ function makeDisplayJson(json, dependentNumber, model){
     var heatmapData = [];
 
     for(var i = 0; i < json["Date"].length; i++){
-        heatmapData[i] = {Date: json["Date"][i][0], rSquare: json["rSquare"][i], index: i, fittedModel: json["fittedModel"][i], savings:  findSavingsPoint(formatted_json, tables[dependentNumber], dependentNumber, i, model)};
+        heatmapData[i] = {Date: json["Date"][i][0], rSquare: json["rSquare"][i], index: i, fittedModel: json[(json["comboNumber"][i]) + "fittedModel"][i], savings:  findSavingsPoint(formatted_json, tables[dependentNumber], dependentNumber, i, model)};
     }
+    console.log(heatmapData);
 
     return heatmapData;
 }
@@ -398,7 +377,7 @@ function makeHeatmap(displayJson, number){
 
     var dependentKeys = Object.keys(formatted_json.dependent);
 
-    document.getElementById("displayZone").innerHTML +=    "   <div class='row'>" +
+    document.getElementById("displayZone").innerHTML += "   <div class='row'>" +
                                                         "       <div class='col-2'></div>" +
                                                         "       <div class='col-8 heatmap-title'><strong>" + dependentKeys[number] + "</strong></div>" +
                                                         "       <div class='col-2'></div>" +
@@ -833,7 +812,6 @@ function makeGraph(displayJson, number) {
                     .attr("height", document.getElementById("legendCol"+number).offsetHeight);
 
     const gridSize = 20;
-    console.log(jsons);
 
     for(var i = 0; i < jsons.length; i++) {
 
@@ -927,8 +905,6 @@ function makeSavingsGraph(displayJson, number, savings){
 
     // Scale the range of the data
     x.domain([0, jsons[0].length]);
-
-
 
     // define the line
     var valueline = d3.line()
@@ -1296,43 +1272,107 @@ function clearData(){
     document.getElementById("clear-btn").style.display = "none";
     document.getElementById("calculate-btn").style.display = "none";
     document.getElementById("calculate-btn-row").style.paddingTop = "0px";
-    //document.getElementById("export-btn").style.display = "none";
+    document.getElementById("export-btn").style.display = "none";
     document.getElementById("displayZone").innerHTML = "";
     document.getElementById("display-format-col").style.display = "none";
 }
 
 function exportData(){
 
-    var export_formatJson = {};
+    //var export_formatJson = {};
+    var export_formatJson = [];
     var fields = [];
 
-    fields[0] = ["Date"];
+    var dependentNames = Object.keys(formatted_json.dependent);
 
-    export_formatJson.Date = "";
-    for(var i = 0; i < tables[0]["results"][0]["Date"].length; i++){
-        export_formatJson.Date += tables[0]["results"][0]["Date"][i][0] + ",";
-    }
+    var totalOutputKeys = [];
 
-    for(var i = 0; i < tables[0]["results"].length; i++){
+    for(var z = 0; z < tables.length; z++) {
 
-        var outputKeys = Object.keys(tables[0]["results"][i]);
 
-        for(var j = 0; j < outputKeys.length; j++) {
-            fields[i*outputKeys.length+j] = outputKeys[j];
-            export_formatJson[fields[i*outputKeys.length+j]] = "";
+            for (var i = 0; i < tables[z]["results"][0]["Date"].length; i++) {
 
-            for(var k = 0; k < tables[0]["results"][i][outputKeys[j]].length; k++){
-                export_formatJson[fields[i*outputKeys.length+j]] += tables[0]["results"][i][outputKeys[j]][k] + ",";
+                export_formatJson[z * tables[z]["results"][0]["Date"].length + i] = {};
+
+                for(var k = 0; k < tables[z]["results"].length; k++) {
+
+                    var outputKeys = Object.keys(tables[z]["results"][k]);
+
+                    console.log(outputKeys);
+
+
+                    //date
+                    export_formatJson[i][outputKeys[0]] = tables[z]["results"][k][outputKeys[0]][i][0];
+
+                    for (var j = 1; j < outputKeys.length; j++) {
+                        if(outputKeys[j] != "comboNumber"){
+                            export_formatJson[i]["(" + dependentNames[z] + ")" + outputKeys[j]] = tables[z]["results"][k][outputKeys[j]][i];
+                        }
+                    }
+                }
             }
-        }
+
     }
 
-    const json2csvParser = new Json2csvParser({ fields });
+
+    // fields[0] = ["Date"];
+    //
+    // export_formatJson.Date = "";
+    // for(var i = 0; i < tables[0]["results"][0]["Date"].length; i++){
+    //     export_formatJson.Date += tables[0]["results"][0]["Date"][i][0] + ",";
+    // }
+    //
+    // for(var i = 0; i < tables[0]["results"].length; i++){
+    //
+    //     var outputKeys = Object.keys(tables[0]["results"][i]);
+    //
+    //     for(var j = 0; j < outputKeys.length; j++) {
+    //         fields[i*outputKeys.length+j] = outputKeys[j];
+    //         export_formatJson[fields[i*outputKeys.length+j]] = "";
+    //
+    //         for(var k = 0; k < tables[0]["results"][i][outputKeys[j]].length; k++){
+    //             export_formatJson[fields[i*outputKeys.length+j]] += tables[0]["results"][i][outputKeys[j]][k] + ",";
+    //         }
+    //     }
+    // }
+
+
+    // /* make the worksheet */
+    // var ws = XLSX.utils.json_to_sheet(export_formatJson);
+    //
+    // /* add to workbook */
+    // var wb = XLSX.utils.book_new();
+    // XLSX.utils.book_append_sheet(wb, ws, "People");
+    //
+    // /* write workbook (use type 'binary') */
+    // var wbout = XLSX.write(wb, {bookType:'xlsx', type:'binary'});
+    //
+    // /* generate a download */
+    // function s2ab(s) {
+    //     var buf = new ArrayBuffer(s.length);
+    //     var view = new Uint8Array(buf);
+    //     for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+    //     return buf;
+    // }
+    //
+    //
+    // saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), "sheetjs.xlsx");
+    //
+    // var csv = XLSX.utils.json_to_sheet(export_formatJson);
+    // console.log(csv);
+
+
+
+    // console.log(outputKeys);
+    // console.log(export_formatJson);
+    console.log(export_formatJson);
+    const json2csvParser = new Json2csvParser({ outputKeys });
     const csv = json2csvParser.parse(export_formatJson);
 
-    var file = new File([csv], "export.xlsx", {type: "text/plain;charset=utf-8"});
+    var blob = new Blob([csv], {type: "text/plain;charset=utf-8"});
 
-    saveAs(file);
+    saveAs(blob, "export.xlsx");
+
 }
 
 

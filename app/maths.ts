@@ -51,14 +51,14 @@ function findResults(json, dependentNumber){
             Date: [],
         };
         results["rSquare"] = [];
-        results["Intercept" + i] = [];
-        results["fittedModel"] = [];
-
+        results["comboNumber"] = [];
+        results[i + "Intercept"] = [];
+        results[i + "fittedModel"] = [];
 
         for(var k = 0; k < independentCombinations[i].length; k++){
-
-            results[independentCombinations[i][k] + "Coeff" + i] = [];
-            results[independentCombinations[i][k] + "pvalue" + i] = [];
+            console.log(independentCombinations[i][k]);
+            results[i + independentCombinations[i][k] + "Coeff"] = [];
+            results[i + independentCombinations[i][k] + "pvalue"] = [];
         }
 
         for(var j = 0; j < (rows - 11); j++) {
@@ -75,14 +75,15 @@ function findResults(json, dependentNumber){
             results.Date[j] = json.date[dateKeys[0]][j];
 
             results["rSquare"][j] = model.rSquare;
-            results["Intercept" + i][j] = model.intercept;
+            results["comboNumber"][j] = i;
+            results[i + "Intercept"][j] = model.intercept;
 
             for(var n = 0; n < independentCombinations[i].length; n++){
-                results[independentCombinations[i][n] + "Coeff" + i][j] = model.params[n];
-                results[independentCombinations[i][n] + "pvalue" + i][j] = "p Value of " + independentCombinations[i][n];
+                results[i + independentCombinations[i][n] + "Coeff"][j] = model.params[n];
+                results[i + independentCombinations[i][n] + "pvalue"][j] = "p Value of " + independentCombinations[i][n];
             }
 
-            results["fittedModel"][j] = model.fittedModel;
+            results[i + "fittedModel"][j] = model.fittedModel;
         }
 
         totalResult[i] = results;
@@ -92,16 +93,9 @@ function findResults(json, dependentNumber){
 
     return table;
 
-    ///////////#####STEP 2 - FINDING MODELS THAT PASS AND THOSE THAT FAIL######/////////////////
-    //TODO
 }
 
 function findSavings(json, table, dependentNumber){
-
-    ///////////#####STEP 3 - FINDING SAVINGS ######/////////////////
-    //# The savings numbers are caculated in this section with base year as the first 12 months and model year as year2.
-    //# we use model6 to determine savings, in the tool the user should be able to choose model and model year.
-    //# Lets fix the base year to be first 12 months for the initial version of the tool.
 
     var rows = json.date.Date.length;
     var independentKeys = Object.keys(json.independent);
@@ -155,11 +149,6 @@ function findSavings(json, table, dependentNumber){
 
 function findSavingsPoint(json, table, dependentNumber, year, model){
 
-    ///////////#####STEP 3 - FINDING SAVINGS ######/////////////////
-    //# The savings numbers are caculated in this section with base year as the first 12 months and model year as year2.
-    //# we use model6 to determine savings, in the tool the user should be able to choose model and model year.
-    //# Lets fix the base year to be first 12 months for the initial version of the tool.
-
     var rows = json.date.Date.length;
     var independentKeys = Object.keys(json.independent);
     var dependentKeys = Object.keys(json.dependent);
@@ -193,20 +182,19 @@ function findSavingsPoint(json, table, dependentNumber, year, model){
             //console.log(totalResult[model][independents[k] + "Coeff" + model] [year]);
 
             //json.independent[independentKeys[i]][year] *
-            savings["Total Model " + dependent][i] += table.results[model][table.combinations[model][k] + "Coeff" + model][year] * independentSum;
+            savings["Total Model " + dependent][i] += table.results[model][model + table.combinations[model][k] + "Coeff"][year] * independentSum;
         }
 
-        savings["Total Model " + dependent][i] += table.results[model]["Intercept" + model][year] * 12;
+        savings["Total Model " + dependent][i] += table.results[model][model + "Intercept"][year] * 12;
         savings["Total Actual " + dependent][i] = sum;
 
-        savings["%Savings"][i] = Number(((1 - ((savings["Total Model " + dependent][0] * savings["Total Actual " + dependent][i]) / (savings["Total Actual " + dependent][0] * savings["Total Model " + dependent][i])))).toFixed(2));
+        savings["%Savings"][i] = Number(((1 - ((savings["Total Model " + dependent][0] * savings["Total Actual " + dependent][i]) / (savings["Total Actual " + dependent][0] * savings["Total Model " + dependent][i])))).toFixed(4));
     }
 
     return savings;
 }
 
 function findSavingsLine(displayJsons) {
-    console.log(displayJsons);
 
     var savingsLines = [];
 
@@ -219,6 +207,8 @@ function findSavingsLine(displayJsons) {
             }
         }
     }
+
+    console.log(savingsLines);
 
     return savingsLines;
 }
