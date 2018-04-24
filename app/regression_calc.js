@@ -314,7 +314,7 @@ function calc2(){
     var num = calc2.arguments[0];
     json = calc2.arguments[1];
     var model = {
-        fittedModal: "",
+        fittedModel: "",
         params: [],
         yValues: "",
         rSquare: "",
@@ -368,7 +368,7 @@ function calc2(){
 
             //console.log("The Fitted Model is :" + output);
 
-            model.fittedModal = output;
+            model.fittedModel = output;
 
             for ( i = -1; i < N-1; i++)
             {
@@ -767,10 +767,10 @@ function calc2(){
     return model;
 }
 
-function calc3(num, dependent, independent){
+function calc3(num, dependent, independent, independentNames){
 
     var model = {
-        fittedModal: "",
+        fittedModel: "",
         params: [],
         yValues: "",
         rSquare: "",
@@ -818,15 +818,14 @@ function calc3(num, dependent, independent){
             var SE = 0;
             var ST = 0;
 
-
             for (i = 1; i <=M; i++) {
-                output += " + (" + roundSigDig(regrCoeff[i], sigDig) + ")X" + i;
+                output += " + (" + roundSigDig(regrCoeff[i], sigDig) + ")" + independentNames[i-1];
                 model.params[i-1] = roundSigDig(regrCoeff[i], sigDig);
             }
 
             //console.log("The Fitted Model is :" + output);
 
-            model.fittedModal = output;
+            model.fittedModel = output;
 
             for ( i = -1; i < N-1; i++)
             {

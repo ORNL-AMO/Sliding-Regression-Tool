@@ -23,7 +23,6 @@
     <div class="col-2"></div>
   </div>
 
-
   <div id="drop-container-row" class="row">
     <div class="col-2"></div>
     <div id="drop-container" class="col-8">
@@ -49,9 +48,9 @@
         <table id="data-table">
           <tr></tr>
         </table>
-      <div>
-    </div>
+      </div>
     <div class="col-2"></div>
+    </div>
   </div>
 
   <div id="calculate-btn-row" class="row">
@@ -62,78 +61,157 @@
     <div class="col-2"></div>
   </div>
 
-  <div id="info-row" class="row">
-    <div class="col-2"></div>
-    <div class="col-8">
-      <table>
-        <tr>
-          <th colspan="4" style="text-align: center;">Regression Information</th>
-        </tr>
-        <tr>
-          <td colspan="4" style="text-align: center;">The Fitted Model is:</td>
-        </tr>
-        <tr>
-          <td id="fitted-model" colspan="4" style="text-align: center; height: 41px;"></td>
-        </tr>
-        <tr>
-          <td>R-Square</td>
-          <td id="r-square" class="box-right data-box"></td>
-          <td>F-Statistic</td>
-          <td id="f-statistic"></td>
-        </tr>
-        <tr>
-          <td>Mean</td>
-          <td id="mean" class="box-right data-box"></td>
-          <td>Variance</td>
-          <td id="variance" class="data-box"></td>
-        </tr>
-        <tr>
-          <td>Mean: The First-Half</td>
-          <td id="mean-1" class="box-right data-box"></td>
-          <td>Mean: The Second-Half</td>
-          <td id="mean-2" class="data-box"></td>
-        </tr>
-        <tr>
-          <td>Variance:  The First-Half</td>
-          <td id="var-1" class="box-right data-box"></td>
-          <td>Variance:  The Second-Half</td>
-          <td id="var-2" class="data-box"></td>
-        </tr>
-        <tr>
-          <td>First Order Serial-Correlation</td>
-          <td id="first-order" class="box-right data-box"></td>
-          <td>Second Order Serial-Correlation</td>
-          <td id="second-order" class="data-box"></td>
-        </tr>
-        <tr>
-          <td>Durbin-Watson Statistic</td>
-          <td id="durbin-watson" class="box-right data-box"></td>
-          <td>Mean Absolute Errors</td>
-          <td id="mean-abs-error" class="data-box"></td>
-        </tr>
-        <tr>
-          <td  colspan="4" style="text-align: center;"> Normality Condition:</td>
-        </tr>
-        <tr>
-          <td id="normality" colspan="4" style="text-align: center; height: 41px;"></td>
-        </tr>
-        <tr>
-          <td  colspan="4" style="text-align: center;">i<sup>th</sup> Residual:</td>
-        </tr>
-        <tr>
-          <td id="i-residual" colspan="4" style="text-align: center; height: 41px;"></td>
-        </tr>
-      </table>
+  <div class="row">
+    <div class="col-4"></div>
+    <div id="display-format-col" class="col-4">
+      <div class="row">
+        <div id="display-format-title" class="col-12"><strong>Display Format</strong></div>
+      </div>
+      <div class="row">
+        <div class="col-1"></div>
+        <div class="col-5" style="text-align: center;">
+          <button id="heatMap-btn" type="button" onclick="displayHeatmaps()">Heat Map</button>
+        </div>
+        <div class="col-5" style="text-align: center;">
+          <button id="graph-btn" type="button" onclick="displayGraphs()">Graph</button>
+        </div>
+        <div class="col-1"></div>
+      </div>
     </div>
-    <div class="col-2"></div>
+    <div class="col-4"></div>
   </div>
 
-  <div id="graph-container" class="row">
-    <div class="col-2"></div>
-    <div id="graph-col" class="col-8">
-      <div id="graph"></div>
+
+  <div id="displayZone">
+  </div>
+
+  <!--<div id="heatmap-row" class="row">-->
+    <!--<div class="col-2"></div>-->
+    <!--<div class="col-8">-->
+      <!--<div id="heatmap-container"></div>-->
+    <!--</div>-->
+    <!--<div class="col-2"></div>-->
+  <!--</div>-->
+
+  <!--<div id="model-info-table-container" class="row">-->
+    <!--<div class="col-2"></div>-->
+    <!--<div id="model-info-table-col" class="col-8">-->
+      <!--<div id="model-info-table-div">-->
+        <!--<table id="model-info-table">-->
+          <!--<tr></tr>-->
+        <!--</table>-->
+      <!--</div>-->
+      <!--<div class="col-2"></div>-->
+    <!--</div>-->
+  <!--</div>-->
+
+
+
+
+  <!--<div id="model-info-row" class="row">-->
+    <!--<div class="col-2"></div>-->
+    <!--<div id="model-info-col" class="col-8">-->
+      <!--<div class="row">-->
+        <!--<div id="model-info-title" class="col-12"><strong>Model Information</strong></div>-->
+      <!--</div>-->
+      <!--<div class="row">-->
+        <!--<div class="col-12">-->
+          <!--<div id="model-info-display"></div>-->
+        <!--</div>-->
+      <!--</div>-->
+    <!--</div>-->
+    <!--<div class="col-2"></div>-->
+  <!--</div>-->
+
+
+  <!--<div id="model-selection-row" class="row">-->
+    <!--<div class="col-12">-->
+      <!--<div id="model-selection-title-row" class="row">-->
+        <!--<div class="col-2"></div>-->
+        <!--<div id="model-selection-title-container" class="col-8">-->
+          <!--<div id="model-selection-title"><strong>Model Selection</strong></div>-->
+        <!--</div>-->
+        <!--<div class="col-2"></div>-->
+      <!--</div>-->
+
+      <!--<div id="models">-->
+      <!--</div>-->
+
+    <!--</div>-->
+  <!--</div>-->
+
+  <!--<div id="info-row" class="row">-->
+    <!--<div class="col-2"></div>-->
+    <!--<div class="col-8">-->
+      <!--<table>-->
+        <!--<tr>-->
+          <!--<th colspan="4" style="text-align: center;">Regression Information</th>-->
+        <!--</tr>-->
+        <!--<tr>-->
+          <!--<td colspan="4" style="text-align: center;">The Fitted Model is:</td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+          <!--<td id="fitted-model" colspan="4" style="text-align: center; height: 41px;"></td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+          <!--<td>R-Square</td>-->
+          <!--<td id="r-square" class="box-right data-box"></td>-->
+          <!--<td>F-Statistic</td>-->
+          <!--<td id="f-statistic"></td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+          <!--<td>Mean</td>-->
+          <!--<td id="mean" class="box-right data-box"></td>-->
+          <!--<td>Variance</td>-->
+          <!--<td id="variance" class="data-box"></td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+          <!--<td>Mean: The First-Half</td>-->
+          <!--<td id="mean-1" class="box-right data-box"></td>-->
+          <!--<td>Mean: The Second-Half</td>-->
+          <!--<td id="mean-2" class="data-box"></td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+          <!--<td>Variance:  The First-Half</td>-->
+          <!--<td id="var-1" class="box-right data-box"></td>-->
+          <!--<td>Variance:  The Second-Half</td>-->
+          <!--<td id="var-2" class="data-box"></td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+          <!--<td>First Order Serial-Correlation</td>-->
+          <!--<td id="first-order" class="box-right data-box"></td>-->
+          <!--<td>Second Order Serial-Correlation</td>-->
+          <!--<td id="second-order" class="data-box"></td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+          <!--<td>Durbin-Watson Statistic</td>-->
+          <!--<td id="durbin-watson" class="box-right data-box"></td>-->
+          <!--<td>Mean Absolute Errors</td>-->
+          <!--<td id="mean-abs-error" class="data-box"></td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+          <!--<td  colspan="4" style="text-align: center;"> Normality Condition:</td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+          <!--<td id="normality" colspan="4" style="text-align: center; height: 41px;"></td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+          <!--<td  colspan="4" style="text-align: center;">i<sup>th</sup> Residual:</td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+          <!--<td id="i-residual" colspan="4" style="text-align: center; height: 41px;"></td>-->
+        <!--</tr>-->
+      <!--</table>-->
+    <!--</div>-->
+    <!--<div class="col-2"></div>-->
+  <!--</div>-->
+
+
+
+  <div class="row" style="padding-top: 35px;">
+    <div id="export-col" class="col-12">
+      <input id="export-btn" value="Export Data" onclick="exportData()" name="button3" type="button">
     </div>
-    <div class="col-2"></div>
   </div>
 
   <div class="row" style="padding-top: 35px;">
@@ -147,5 +225,4 @@
   <script src="app/maths.ts"></script>
   <script src="app/regression_calc.js"></script>
   <script src="app/enpi_tool.js"></script>
-  <script src="app/graph.js"></script>
 </html>
