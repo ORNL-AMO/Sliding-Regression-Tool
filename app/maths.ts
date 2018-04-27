@@ -188,7 +188,7 @@ function findSavingsPoint(json, table, dependentNumber, year, model){
         savings["Total Model " + dependent][i] += table.results[model][model + "Intercept"][year] * 12;
         savings["Total Actual " + dependent][i] = sum;
 
-        savings["%Savings"][i] = Number(((1 - ((savings["Total Model " + dependent][0] * savings["Total Actual " + dependent][i]) / (savings["Total Actual " + dependent][0] * savings["Total Model " + dependent][i])))).toFixed(4));
+        savings["%Savings"][i] = Number(((1 - ((savings["Total Model " + dependent][0] * savings["Total Actual " + dependent][i]) / (savings["Total Actual " + dependent][0] * savings["Total Model " + dependent][i])))).toFixed(4)) * 100;
     }
 
     return savings;

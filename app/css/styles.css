@@ -223,8 +223,6 @@ tr:nth-child(odd) {
     cursor: not-allowed;
 }
 
-
-
 .model-selector {
     background-color: #9b9b9b;
     color: white;
@@ -454,8 +452,9 @@ tr:nth-child(odd) {
 
 .range-display-row {
     height: 50px;
-    background-color: #d4d4d4;
-    box-shadow: 0px 5px #c1c1c1;
+    padding-top: 5px;
+    /*background-color: #d4d4d4;*/
+    /*box-shadow: 0px 5px #c1c1c1;*/
 }
 
 .range-display-start {
@@ -464,6 +463,51 @@ tr:nth-child(odd) {
 
 .range-display-end {
     text-align: center;
+}
+
+.current-position {
+    text-align: center;
+}
+
+.savings-download-btn-row {
+    padding-top: 10px;
+}
+
+.savings-download-btn {
+    font-size: 18px;
+    background-color: #c4c4c4;
+    color: black;
+    border-radius: 6px;
+    border: 0px;
+    border-top: none;
+    border-bottom: 3px solid #707070;
+}
+
+
+.savings-download-btn:focus {
+    outline: none !important;
+    background-color: #a8a8a8;
+    border-top: 3px solid white;
+    border-bottom: none;
+}
+
+.savings-download-btn:active {
+    outline: none !important;
+    background-color: #A8A8A8;
+    border-top: 3px solid white;
+    border-bottom: none;
+}
+
+.rGraph-title {
+    background-color: #d8d9d9;
+    text-align: center;
+    padding-top: 20px;
+}
+
+.savingsGraph-title {
+    text-align: center;
+    padding: 0px;
+    padding-top: 20px;
 }
 
 /***********************************/
