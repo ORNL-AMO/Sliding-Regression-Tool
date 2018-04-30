@@ -348,7 +348,6 @@ function makeDisplayJson(json, dependentNumber, model){
     for(var i = 0; i < json["Date"].length; i++){
         heatmapData[i] = {Date: json["Date"][i][0], rSquare: json["rSquare"][i], index: i, fittedModel: json[(json["comboNumber"][i]) + "fittedModel"][i], savings:  findSavingsPoint(formatted_json, tables[dependentNumber], dependentNumber, i, model)};
     }
-    console.log(heatmapData);
 
     return heatmapData;
 }
@@ -362,18 +361,31 @@ function displayHeatmaps(){
     models = [];
     count = 0;
 
+    var combinations = [];
+
+    for(var j = 0; j < tables[0].combinations.length; j++){
+        var combinationStr = "";
+        for(var k = 0; k < tables[0].combinations[j].length; k++){
+            combinationStr += tables[0].combinations[j][k];
+            if(k != (tables[0].combinations[j].length-1)){
+                combinationStr += " / ";
+            }
+        }
+        combinations[j] = combinationStr;
+    }
+
     for(var i =0; i < tables.length; i++){
         displayJsons[i] = [];
         for(var j = 0; j < tables[i]["results"].length; j++){
             displayJsons[i][j] = makeDisplayJson(tables[i]["results"][j], i, j);
         }
-        makeHeatmap(displayJsons[i], i);
+        makeHeatmap(displayJsons[i], i, combinations);
     }
 
-    loadListeners(displayJsons);
+    loadListeners(displayJsons, combinations);
 }
 
-function makeHeatmap(displayJson, number){
+function makeHeatmap(displayJson, number, combinations){
 
     var dependentKeys = Object.keys(formatted_json.dependent);
 
@@ -449,41 +461,9 @@ function makeHeatmap(displayJson, number){
         .attr("transform", "translate( -5 , 65) rotate (-90)")
         .style("font-size", "12px");
 
-    // var yAxisSvg = d3.select("#y-axis" + number)
-    //                 .append('svg')
-    //                     .attr("id", "heatmap-y-axis-svg" + number)
-    //                     .attr("width", document.getElementById("heatmap-y-axis-col"+number).offsetWidth)
-    //                     .attr("height", document.getElementById("heatmap-y-axis-col"+number).offsetHeight);
-
-    var combinations = [];
-
-    for(var j = 0; j < tables[0].combinations.length; j++){
-        var combinationStr = "";
-        for(var k = 0; k < tables[0].combinations[j].length; k++){
-            combinationStr += tables[0].combinations[j][k];
-            if(k != (tables[0].combinations[j].length-1)){
-                combinationStr += " / ";
-            }
-        }
-        combinations[j] = combinationStr;
-    }
-
     for(var i = 0; i < displayJson[0].length; i++){
         dates[i] = displayJson[0][i]["Date"];
     }
-
-
-    // var rowLabels = yAxisSvg.append("g")
-    //     .selectAll(".rowLabelg")
-    //     .data(combinations)
-    //     .enter()
-    //     .append("text")
-    //     .text(function (d) { return d; })
-    //     .attr("x", 0)
-    //     .attr("y", function (d, i) { return i * gridSize; })
-    //     .style("text-anchor", "end")
-    //     .attr("transform", "translate(" + document.getElementById("heatmap-y-axis-col"+number).offsetWidth + ", 85)")
-    //     .style("font-size", "12px");
 
 
     document.getElementById("y-axis"+number).innerHTML = "";
@@ -515,20 +495,7 @@ function makeHeatmap(displayJson, number){
     }
 }
 
-function loadListeners(displayJsons){
-
-    var combinations = [];
-
-    for(var j = 0; j < tables[0].combinations.length; j++){
-        var combinationStr = "";
-        for(var k = 0; k < tables[0].combinations[j].length; k++){
-            combinationStr += tables[0].combinations[j][k];
-            if(k != (tables[0].combinations[j].length-1)){
-                combinationStr += " / ";
-            }
-        }
-        combinations[j] = combinationStr;
-    }
+function loadListeners(displayJsons, combinations){
 
     var div = d3.select("body").append("div")
         .attr("class", "tooltip")
@@ -613,6 +580,20 @@ function displayGraphs(){
     count = 0;
     savingCount = 0;
 
+    var combinations = [];
+
+    for(var j = 0; j < tables[0].combinations.length; j++){
+        var combinationStr = "";
+        for(var k = 0; k < tables[0].combinations[j].length; k++){
+            combinationStr += tables[0].combinations[j][k];
+            if(k != (tables[0].combinations[j].length-1)){
+                combinationStr += " / ";
+            }
+        }
+        combinations[j] = combinationStr;
+    }
+
+
     for(var i =0; i < tables.length; i++){
         displayJsons[i] = [];
         for(var j = 0; j < tables[i]["results"].length; j++){
@@ -623,11 +604,24 @@ function displayGraphs(){
     }
 
     for(var i = 0; i < tables.length; i++){
-        makeGraph(displayJsons[i], i);
-        makeSavingsGraph(displayJsons[i], i, savingsLines[i]);
+
+        var dataJsons = [];
+
+        for(var k = 0; k < displayJsons[i].length; k++) {
+            dataJsons[k]= [{}];
+            for (var j = 0; j < displayJsons[i][k].length; j++) {
+                dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: i, rSquare: displayJsons[i][k][j].rSquare, savingsPercent: savingsLines[i][k][j], fittedModel: displayJsons[i][k][j].fittedModel};
+            }
+        }
+
+        lineLock[i] = true;
+
+        makeGraph(displayJsons[i], i, combinations, dataJsons);
+        makeSavingsGraph(displayJsons[i], i, combinations, dataJsons);
+        makeGuideLine(displayJsons[i], i, combinations, dataJsons);
     }
 
-    loadGraphListeners();
+    loadGraphListeners(combinations, displayJsons);
 }
 
 const lineColors = [
@@ -665,10 +659,16 @@ function makeGraphElements(number){
                                                         "       <div class='col-8 graph-title'><strong>" + dependentKeys[number] + "</strong></div>" +
                                                         "       <div class='col-2'></div>" +
                                                         "   </div>" +
+                                                        "   <div class='row'>" +
+                                                        "       <div class='col-2'></div>" +
+                                                        "       <div class='col-8 rGraph-title'><strong>rSquare Graph</strong></div>" +
+                                                        "       <div class='col-2'></div>" +
+                                                        "   </div>" +
                                                         "   <div id='graph-row" + number + "' class=\"row graph-row\">\n" +
                                                         "    <div id='y-axis" + number + "' class=\"col-2\" style='padding-right: 0px'></div>\n" +
                                                         "    <div id='graph-col' class=\"col-8\">\n" +
                                                         "      <div id='graph-container" + number + "' class='graph-container'></div>\n" +
+                                                        "           <div id='savingsGraph-title" + number +"' class='col-12 savingsGraph-title' style='padding: 0px; text-align: center; background-color: #d8d9d9; height: 40px'></div>" +
                                                         "      <div id='savings-graph-container" + number + "' class='savings-graph-container'></div>\n" +
                                                         "    </div>\n" +
                                                         "    <div id='legendCol" + number + "' class='col-2' style='padding-left: 0px'>" +
@@ -679,15 +679,17 @@ function makeGraphElements(number){
                                                         "    <div class=\"col-2\" style='padding: 0px'></div>\n" +
                                                         "    <div id='graph-col' class=\"col-8\">\n" +
                                                         "       <div id='range-display-row" + number + "' class='row range-display-row'>" +
-                                                        "           <div class='col-2' style='padding: 0px'></div>" +
+                                                        "           <div class='col-1' style='padding: 0px'></div>" +
                                                         "           <div id='range-display-start-col" + number + "' class='col-3' style='padding: 0px'>" +
                                                         "               <div id='range-display-start" + number + "' class='range-display-start'></div>" +
                                                         "           </div>" +
-                                                        "           <div class='col-2' style='padding: 0px'></div>" +
+                                                        "           <div id='current-position-col" + number + "' class='col-4' style='padding: 0px'>" +
+                                                        "               <div id='current-position" + number + "' class='current-position'></div>" +
+                                                        "           </div>" +
                                                         "           <div id='range-display-end-col" + number + "' class='col-3' style='padding: 0px'>" +
                                                         "               <div id='range-display-end" + number + "' class='range-display-end'></div>" +
                                                         "           </div>" +
-                                                        "           <div class='col-2' style='padding: 0px'></div>" +
+                                                        "           <div class='col-1' style='padding: 0px'></div>" +
                                                         "       </div>\n" +
                                                         "    </div>\n" +
                                                         "    <div class='col-2' style='padding: 0px'>" +
@@ -695,54 +697,64 @@ function makeGraphElements(number){
                                                         "  </div>\n" +
                                                         "\n" +
                                                         "  <div id='model-info-table-container" + number + "' class=\"row\">\n" +
-                                                        "    <div id='' class=\"col-2\"></div>\n" +
-                                                        "    <div id='model-info-table-col" + number + "' class=\"col-8\">\n" +
+                                                        "    <div id='' class=\"col-1\"></div>\n" +
+                                                        "    <div id='model-info-table-col" + number + "' class=\"col-10\">\n" +
                                                         "      <div id='model-info-table-div" + number + "'>\n" +
                                                         "        <table id='model-info-table" + number + "'>\n" +
                                                         "          <tr></tr>\n" +
                                                         "        </table>\n" +
                                                         "      </div>\n" +
-                                                        "      <div class=\"col-2\"></div>\n" +
+                                                        "      <div class=\"col-1\"></div>\n" +
                                                         "    </div>\n" +
-                                                        "  </div>\n";
-
+                                                        "  </div>\n"; //+
+                                                        // "  <div id='savings-download-btn-row" + number + "'  class=\"row savings-download-btn-row\">\n" +
+                                                        // "    <div id='' class=\"col-2\"></div>\n" +
+                                                        // "    <div id='savings-download-btn-col" + number + "' class=\"col-8\">\n" +
+                                                        // "      <div id='savings-download-btn-div" + number + "' style='text-align: center'>\n" +
+                                                        // "           <button id='savings-download-btn" + number + "' class='savings-download-btn' type=\"button\" onclick=''><i id=\"dragAndDropArrow\" class=\"fas fa-download\"></i></button>" +
+                                                        // "      </div>\n" +
+                                                        // "      <div class=\"col-2\"></div>\n" +
+                                                        // "    </div>\n" +
+                                                        // "  </div>\n";
 }
 
-function makeGraph(displayJson, number) {
 
-    var jsons = [];
+var rMargin = {top: 10, right: 15, bottom: 75, left: 50};
 
-    for(var i = 0; i < displayJson.length; i++) {
-        jsons[i]= [{}];
-        for (var j = 0; j < displayJson[i].length; j++) {
-            jsons[i][j] = {modelCombo: i, modelYear: j, dependentNumber: number, rSquare: displayJson[i][j].rSquare};
-        }
-    }
+var activeModels = [];
 
-    var combinations = [];
+function makeGraph(displayJson, number, combinations, dataJsons) {
 
-    for(var j = 0; j < tables[0].combinations.length; j++){
-        var combinationStr = "";
-        for(var k = 0; k < tables[0].combinations[j].length; k++){
-            combinationStr += tables[0].combinations[j][k];
-            if(k != (tables[0].combinations[j].length-1)){
-                combinationStr += " / ";
-            }
-        }
-        combinations[j] = combinationStr;
-    }
+    var width = document.getElementById("graph-container" + number).offsetWidth - rMargin.left - rMargin.right // Use the window's width
+        , height = document.getElementById("graph-container" + number).offsetHeight - rMargin.top - rMargin.bottom; // Use the window's height
 
-
-    // 2. Use the margin convention practice
-    var margin = {top: 10, right: 15, bottom: 65, left: 35}
-        , width = document.getElementById("graph-container" + number).offsetWidth - margin.left - margin.right // Use the window's width
-        , height = document.getElementById("graph-container" + number).offsetHeight - margin.top - margin.bottom; // Use the window's height
+    d3.select("#graph-container" + number).selectAll('svg').remove();
 
     var svg = d3.select("#graph-container" + number).append('svg')
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
+        .attr("width", width + rMargin.left + rMargin.right)
+        .attr("height", height + rMargin.top + rMargin.bottom)
+        .attr("id", "rSvg" + number)
+        .style("z-index", "10")
         .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            .attr("transform", "translate(" + rMargin.left + "," + rMargin.top + ")");
+
+    var titleSvg = d3.select("#savingsGraph-title" + number).append('svg')
+        .attr("width", width + rMargin.left + rMargin.right)
+        .attr("height", document.getElementById("savingsGraph-title" + number).offsetHeight)
+        .attr("id", "savingsTitleSvg" + number)
+        .append("g")
+        .attr("transform", "translate(" + rMargin.left + ", 0)");
+
+    titleSvg.append('foreignObject')
+        .attr("id", "savingsTitleText" + number)
+        .attr("class", "savingsTitleText")
+        .attr("width", document.getElementById("savingsGraph-title" + number).offsetWidth)
+        .attr("height", "40px")
+        .attr("transform", "translate(" + (-rMargin.left) + ", 0)")
+        .text("Savings Percentage Graph")
+        .style("font-weight", "bold")
+        .style("text-align", "center");
+
 
     var x = d3.scaleLinear()
         .rangeRound([0, width]);
@@ -754,7 +766,7 @@ function makeGraph(displayJson, number) {
         .rangeRound([height, 0]);
 
     // Scale the range of the data
-    x.domain([0, jsons[0].length]);
+    x.domain([0, dataJsons[0].length]);
     y.domain([0, 1]);
 
     // define the line
@@ -769,11 +781,10 @@ function makeGraph(displayJson, number) {
     var graph = svg.append('rect')
         .attr("id", "graph" + number)
         .attr("class", "graph")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .attr("transform", "translate(" + (-margin.left) + "," + (-margin.top) + ")")
+        .attr("width", width + rMargin.left + rMargin.right)
+        .attr("height", height + rMargin.top + rMargin.bottom)
+        .attr("transform", "translate(" + (-rMargin.left) + "," + (-rMargin.top) + ")")
         .style("fill", "#d8d9d9");
-
 
     var data = [];
 
@@ -795,11 +806,6 @@ function makeGraph(displayJson, number) {
         .attr("dy", ".15em")
         .attr("transform", "rotate(-65)");
 
-    // svg.append("g")
-    //     .attr("class", "x-axis")
-    //     .attr("transform", "translate(0," + height + ")")
-    //     .call(d3.axisBottom(x)); // Create an axis component with d3.axisBottom
-
     svg.append("g")
         .attr("class", "y-axis")
         .call(d3.axisLeft(y)); // Create an axis component with d3.axisLeft
@@ -813,12 +819,14 @@ function makeGraph(displayJson, number) {
 
     const gridSize = 20;
 
-    for(var i = 0; i < jsons.length; i++) {
+    activeModels[number] = [];
 
-        clickableBoxData[count] = {data: jsons, dependentNumber: number, number: i};
+    for(var i = 0; i < dataJsons.length; i++) {
+
+        clickableBoxData[count] = {data: dataJsons, dependentNumber: number, number: i};
 
         svg.append("path")
-            .data([jsons[i]])
+            .data([dataJsons[i]])
             .attr("id", "line"+count)
             .attr("class", "line")
             .style("stroke", lineColors[i])
@@ -856,55 +864,290 @@ function makeGraph(displayJson, number) {
             })
             .attr('fill', 'black');
 
+        activeModels[number][combinations[i]] = true;
+
         count++;
     }
+
+    //make model-info-table
+    var modelInfoTable = document.getElementById("model-info-table"  + number);
+
+    modelInfoTable.innerHTML = "";
+
+    document.getElementById("model-info-table-div" + number).style.height = "100%";
+    document.getElementById("model-info-table-div" + number).style.paddingTop = "5px";
+
+    //Load table backwards
+    for(var i = dataJsons.length-1; 0 <= i; i--) {
+
+        var newRow = modelInfoTable.insertRow(0);
+
+        //Savings %
+        newCol = newRow.insertCell(0);
+        newCol.innerHTML = "-";
+        newCol.id = combinations[i] + "Savings" + number;
+        newCol.style.textAlign = "center";
+        newCol.width = "25%";
+        newCol.style.overflowX = "auto";
+
+        //rSquared Value
+        newCol = newRow.insertCell(0);
+        newCol.innerHTML = "-";
+        newCol.id = combinations[i] + "rSquared" + number;
+        newCol.style.textAlign = "center";
+        newCol.width = "25%";
+        newCol.style.overflowX = "auto";
+
+        //Fitted Model
+        var newCol = newRow.insertCell(0);
+        newCol.innerHTML = "-";
+        newCol.id = combinations[i] + "FittedModel" + number;
+        newCol.style.textAlign = "center";
+        newCol.width = "25%";
+        newCol.style.overflowX = "auto";
+
+        //Model
+        var newCol = newRow.insertCell(0);
+        newCol.innerHTML = combinations[i];
+        newCol.id = combinations[i] + "Model" + number;
+        newCol.style.textAlign = "center";
+        newCol.width = "25%";
+        newCol.style.overflowX = "auto";
+
+    }
+
+    //Make table col headers for the model-info-table last
+    newRow = modelInfoTable.insertRow(0);
+
+    //savings %
+    newCol = newRow.insertCell(0);
+    newCol.innerHTML = "<strong>Savings %</strong>";
+    newCol.style.textAlign = "center";
+    newCol.width = "25%";
+
+    //rSquared Value
+    newCol = newRow.insertCell(0);
+    newCol.innerHTML = "<strong>rSquare Value</strong>";
+    newCol.style.textAlign = "center";
+    newCol.width = "25%";
+
+    //Fitted Model
+    var newCol = newRow.insertCell(0);
+    newCol.innerHTML = "<strong>Fitted Model</strong>";
+    newCol.style.textAlign = "center";
+    newCol.width = "25%";
+
+    //Model
+    var newCol = newRow.insertCell(0);
+    newCol.innerHTML = "<strong>Model</strong>";
+    newCol.style.textAlign = "center";
+    newCol.width = "25%";
+
+    newRow = modelInfoTable.insertRow(0);
+
+    //Title
+    newCol = newRow.insertCell(0);
+    newCol.colSpan = "4";
+    newCol.innerHTML = "<strong>Model Information</strong>";
+    newCol.style.textAlign = "center";
+    newCol.style.fontSize = "20px";
 }
 
-function makeSavingsGraph(displayJson, number, savings){
-    var jsons = [];
+function remakeModelInfoTable(number, combinations){
+    //make model-info-table
+    var modelInfoTable = document.getElementById("model-info-table"  + number);
 
-    for(var i = 0; i < savings.length; i++) {
-        jsons[i]= [{}];
-        for (var j = 0; j < savings[i].length; j++) {
-            jsons[i][j] = {modelCombo: i, modelYear: j, dependentNumber: number, savingsPercent: savings[i][j]};
+    modelInfoTable.innerHTML = "";
+
+    document.getElementById("model-info-table-div" + number).style.height = "100%";
+    document.getElementById("model-info-table-div" + number).style.paddingTop = "5px";
+
+    //Load table backwards
+    for(var i = combinations.length-1; 0 <= i; i--) {
+        if(activeModels[number][combinations[i]]) {
+            var newRow = modelInfoTable.insertRow(0);
+
+            //Savings %
+            newCol = newRow.insertCell(0);
+            newCol.innerHTML = "-";
+            newCol.id = combinations[i] + "Savings" + number;
+            newCol.style.textAlign = "center";
+            newCol.width = "25%";
+            newCol.style.overflowX = "auto";
+
+            //rSquared Value
+            newCol = newRow.insertCell(0);
+            newCol.innerHTML = "-";
+            newCol.id = combinations[i] + "rSquared" + number;
+            newCol.style.textAlign = "center";
+            newCol.width = "25%";
+            newCol.style.overflowX = "auto";
+
+            //Fitted Model
+            var newCol = newRow.insertCell(0);
+            newCol.innerHTML = "-";
+            newCol.id = combinations[i] + "FittedModel" + number;
+            newCol.style.textAlign = "center";
+            newCol.width = "25%";
+            newCol.style.overflowX = "auto";
+
+            //Model
+            var newCol = newRow.insertCell(0);
+            newCol.innerHTML = combinations[i];
+            newCol.id = combinations[i] + "Model" + number;
+            newCol.style.textAlign = "center";
+            newCol.width = "25%";
+            newCol.style.overflowX = "auto";
         }
     }
 
-    var combinations = [];
+    //Make table col headers for the model-info-table last
+    newRow = modelInfoTable.insertRow(0);
 
-    for(var j = 0; j < tables[0].combinations.length; j++){
-        var combinationStr = "";
-        for(var k = 0; k < tables[0].combinations[j].length; k++){
-            combinationStr += tables[0].combinations[j][k];
-            if(k != (tables[0].combinations[j].length-1)){
-                combinationStr += " / ";
-            }
+    //savings %
+    newCol = newRow.insertCell(0);
+    newCol.innerHTML = "<strong>Savings %</strong>";
+    newCol.style.textAlign = "center";
+    newCol.width = "25%";
+
+    //rSquared Value
+    newCol = newRow.insertCell(0);
+    newCol.innerHTML = "<strong>rSquare Value</strong>";
+    newCol.style.textAlign = "center";
+    newCol.width = "25%";
+
+    //Fitted Model
+    var newCol = newRow.insertCell(0);
+    newCol.innerHTML = "<strong>Fitted Model</strong>";
+    newCol.style.textAlign = "center";
+    newCol.width = "25%";
+
+    //Model
+    var newCol = newRow.insertCell(0);
+    newCol.innerHTML = "<strong>Model</strong>";
+    newCol.style.textAlign = "center";
+    newCol.width = "25%";
+
+    newRow = modelInfoTable.insertRow(0);
+
+    //Title
+    newCol = newRow.insertCell(0);
+    newCol.colSpan = "4";
+    newCol.innerHTML = "<strong>Model Information</strong>";
+    newCol.style.textAlign = "center";
+    newCol.style.fontSize = "20px";
+}
+
+function changeModelInfoTableModels(number, combinations){
+    //make model-info-table
+    var modelInfoTable = document.getElementById("model-info-table"  + number);
+
+    modelInfoTable.innerHTML = "";
+
+    document.getElementById("model-info-table-div" + number).style.height = "100%";
+    document.getElementById("model-info-table-div" + number).style.paddingTop = "5px";
+
+    //Load table backwards
+    for(var i = combinations.length-1; 0 <= i; i--) {
+        if(activeModels[number][combinations[i]]) {
+            var newRow = modelInfoTable.insertRow(0);
+
+            //Savings %
+            newCol = newRow.insertCell(0);
+            newCol.id = combinations[i] + "Savings" + number;
+            newCol.innerHTML =  positionValues[i][combinations[i] + "Savings" + number];
+            newCol.style.textAlign = "center";
+            newCol.width = "25%";
+            newCol.style.overflowX = "auto";
+
+            //rSquared Value
+            newCol = newRow.insertCell(0);
+            newCol.id = combinations[i] + "rSquared" + number;
+            newCol.innerHTML = positionValues[i][combinations[i] + "rSquared" + number];
+            newCol.style.textAlign = "center";
+            newCol.width = "25%";
+            newCol.style.overflowX = "auto";
+
+            //Fitted Model
+            var newCol = newRow.insertCell(0);
+            newCol.id = combinations[i] + "FittedModel" + number;
+            newCol.innerHTML = positionValues[i][combinations[i] + "FittedModel" + number];
+            newCol.style.textAlign = "center";
+            newCol.width = "25%";
+            newCol.style.overflowX = "auto";
+
+            //Model
+            var newCol = newRow.insertCell(0);
+            newCol.innerHTML = combinations[i];
+            newCol.id = combinations[i] + "Model" + number;
+            newCol.style.textAlign = "center";
+            newCol.width = "25%";
+            newCol.style.overflowX = "auto";
         }
-        combinations[j] = combinationStr;
     }
-    
+
+    //Make table col headers for the model-info-table last
+    newRow = modelInfoTable.insertRow(0);
+
+    //savings %
+    newCol = newRow.insertCell(0);
+    newCol.innerHTML = "<strong>Savings %</strong>";
+    newCol.style.textAlign = "center";
+    newCol.width = "25%";
+
+    //rSquared Value
+    newCol = newRow.insertCell(0);
+    newCol.innerHTML = "<strong>rSquare Value</strong>";
+    newCol.style.textAlign = "center";
+    newCol.width = "25%";
+
+    //Fitted Model
+    var newCol = newRow.insertCell(0);
+    newCol.innerHTML = "<strong>Fitted Model</strong>";
+    newCol.style.textAlign = "center";
+    newCol.width = "25%";
+
+    //Model
+    var newCol = newRow.insertCell(0);
+    newCol.innerHTML = "<strong>Model</strong>";
+    newCol.style.textAlign = "center";
+    newCol.width = "25%";
+
+    newRow = modelInfoTable.insertRow(0);
+
+    //Title
+    newCol = newRow.insertCell(0);
+    newCol.colSpan = "4";
+    newCol.innerHTML = "<strong>Model Information</strong>";
+    newCol.style.textAlign = "center";
+    newCol.style.fontSize = "20px";
+}
+
+const savingsMargin = {top: 10, right: 15, bottom: 10, left: 50};
+
+function makeSavingsGraph(displayJson, number, combinations, dataJsons){
+
     // 2. Use the margin convention practice
-    var margin = {top: 10, right: 15, bottom: 10, left: 35}
-        , width = document.getElementById("savings-graph-container" + number).offsetWidth - margin.left - margin.right // Use the window's width
-        , height = document.getElementById("savings-graph-container" + number).offsetHeight - margin.top - margin.bottom; // Use the window's height
+    var width = document.getElementById("savings-graph-container" + number).offsetWidth - savingsMargin.left - savingsMargin.right // Use the window's width
+        , height = document.getElementById("savings-graph-container" + number).offsetHeight - savingsMargin.top - savingsMargin.bottom; // Use the window's height
+
+    d3.select("#savings-graph-container" + number).selectAll('svg').remove();
 
     var svg = d3.select("#savings-graph-container" + number).append('svg')
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
+        .attr("width", width + savingsMargin.left + savingsMargin.right)
+        .attr("height", height + savingsMargin.top + savingsMargin.bottom)
+        .attr("id", "savingsSvg" + number)
         .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        .attr("transform", "translate(" + savingsMargin.left + "," + savingsMargin.top + ")");
 
     var x = d3.scaleLinear()
-        .rangeRound([0, width]);
-
-    var x_date = d3.scaleLinear()
         .rangeRound([0, width]);
 
     var y = d3.scaleLinear()
         .rangeRound([height, 0]);
 
     // Scale the range of the data
-    x.domain([0, jsons[0].length]);
+    x.domain([0, dataJsons[0].length]);
 
     // define the line
     var valueline = d3.line()
@@ -918,37 +1161,325 @@ function makeSavingsGraph(displayJson, number, savings){
     var graph = svg.append('rect')
         .attr("id", "savings-graph" + number)
         .attr("class", "graph")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .attr("transform", "translate(" + (-margin.left) + "," + (-margin.top) + ")")
+        .attr("width", width + savingsMargin.left + savingsMargin.right)
+        .attr("height", height + savingsMargin.top + savingsMargin.bottom)
+        .attr("transform", "translate(" + (-savingsMargin.left) + "," + (-savingsMargin.top) + ")")
         .style("fill", "#d8d9d9");
 
-    for(var i = 0; i < jsons.length; i++) {
+    var maxs = [];
+    var mins = [];
 
-        y.domain(d3.extent(jsons[i], function(d) { return d.savingsPercent; }));
-
-        svg.append("path")
-            .data([jsons[i]])
-            .attr("id", "savingsLine"+savingCount)
-            .attr("class", "line")
-            .style("stroke", lineColors[i])
-            .style("stroke-width", "3px")
-            .style("fill", "none")
-            .attr("d", valueline);
-
-        savingCount++;
+    var count = 0;
+    for(var i = 0; i < dataJsons.length; i++) {
+        if(activeModels[number][combinations[i]]) {
+            maxs[count] = Math.max.apply(Math, dataJsons[i].map(function (d) {
+                return d.savingsPercent;
+            }));
+            mins[count] = Math.min.apply(Math, dataJsons[i].map(function (d) {
+                return d.savingsPercent;
+            }));
+            count++;
+        }
     }
+
+    y.domain([ Math.min.apply(null, mins), Math.max.apply(null, maxs)]);
+
+    for(var i = 0; i < dataJsons.length; i++) {
+        if(activeModels[number][combinations[i]]) {
+            svg.append("path")
+                .data([dataJsons[i]])
+                .attr("id", "savingsLine" + savingCount)
+                .attr("class", "line")
+                .style("stroke", lineColors[i])
+                .style("stroke-width", "3px")
+                .style("fill", "none")
+                .attr("d", valueline);
+
+            savingCount++;
+        }
+    }
+
+    var format = d3.format(".2f")
 
     svg.append("g")
         .attr("class", "y-axis")
-        .call(d3.axisLeft(y)); // Create an axis component with d3.axisLeft
+        .call(d3.axisLeft(y)
+              .tickFormat(d => format(d) + "%")); // Create an axis component with d3.axisLeft
 
     document.getElementById("range-display-start" + number).innerHTML = "Start Period: " + displayJson[0][0]["Date"];
     document.getElementById("range-display-end" + number).innerHTML = "End Period: " + displayJson[0][displayJson[0].length-1]["Date"];
+    document.getElementById("current-position" + number).innerHTML = "Position Date: ---";
+
 }
 
+var lineLock = [];
+var lastPosition = [];
 
-function loadGraphListeners(){
+function makeGuideLine(displayJson, number, combinations, dataJsons){
+
+    d3.selectAll("#rSvg" + number).selectAll("line").remove();
+    d3.selectAll("#savingsSvg" + number).selectAll("line").remove();
+
+    //Set up a guidline lock bool for each dependent graph; True = unlocked, False = locked
+
+    var rWidth = document.getElementById("graph-container" + number).offsetWidth - rMargin.left - rMargin.right // Use the window's width
+        , rHeight = document.getElementById("graph-container" + number).offsetHeight - rMargin.top - rMargin.bottom; // Use the window's height
+
+    var x = d3.scaleLinear()
+        .rangeRound([0, rWidth]);
+
+    var y = d3.scaleLinear()
+        .rangeRound([rHeight, 0]);
+
+    // Scale the range of the data
+    x.domain([0, dataJsons[0].length]);
+    y.domain([0, 1]);
+
+    var savingsWidth = document.getElementById("graph-container" + number).offsetWidth - savingsMargin.left - savingsMargin.right // Use the window's width
+        , savingsHeight = document.getElementById("graph-container" + number).offsetHeight - savingsMargin.top - savingsMargin.bottom; // Use the window's height
+
+    var guideLine = d3.select("#rSvg" + number).append("line")
+        .attr("id", "guideLine")
+        .attr("x1", 0)
+        .attr("y1", 0)
+        .attr("x2", 0)
+        .attr("y2", rHeight)
+        .style("stroke", "red")
+        .style('pointer-events', 'none')
+        .style("display", "none");
+
+    var savingsGuideLine = d3.select("#savingsSvg" + number).append("line")
+        .attr("id", "guideLine")
+        .attr("x1", 0)
+        .attr("y1", 0)
+        .attr("x2", 0)
+        .attr("y2", savingsHeight)
+        .style("stroke", "red")
+        .style('pointer-events', 'none')
+        .style("display", "none");
+
+    document.getElementById("savingsGraph-title" + number).offsetHeight;
+
+
+    if(!lineLock[number]){
+
+        guideLine.style("display", null);
+        savingsGuideLine.style("display", null);
+
+        guideLine.style("stroke", "black");
+        savingsGuideLine.style("stroke", "black");
+
+        guideLine.attr("transform", 'translate(' + (x(lastPosition[number]) + rMargin.left) + ',' + rMargin.top + ')');
+        savingsGuideLine.attr("transform", 'translate(' + (x(lastPosition[number]) + savingsMargin.left) + ',' + savingsMargin.top + ')');
+
+    }
+
+
+    d3.select("#rSvg" + number).append('rect')
+        .attr("id", "coverBox" + number)
+        .attr("class", "coverBox")
+        .attr("width", rWidth )
+        .attr("height", (rHeight + rMargin.bottom))
+        .style("opacity", "0")
+        .attr("transform", "translate(" + (rMargin.left) + "," + (rMargin.top) + ")")
+        .on("mouseover", () => {
+            if(lineLock[number]){
+                guideLine.style("display", null);
+                savingsGuideLine.style("display", null);
+            }
+        })
+        .on("mousemove", () => {
+            if(lineLock[number]) {
+                guideLine.style("display", null);
+                savingsGuideLine.style("display", null);
+
+                xPosition = x.invert(d3.mouse(d3.event.currentTarget)[0]);
+
+                guideLine.attr("transform", 'translate(' + (x(xPosition) + rMargin.left) + ',' + rMargin.top + ')');
+                savingsGuideLine.attr("transform", 'translate(' + (x(xPosition) + savingsMargin.left) + ',' + savingsMargin.top + ')');
+
+                updateModelInfoTable(number, dataJsons, combinations, Math.floor(xPosition), displayJson);
+            }
+        })
+        .on("mouseout", () => {
+            if(lineLock[number]){
+                guideLine.style("display", "none");
+                savingsGuideLine.style("display", "none");
+
+                document.getElementById("current-position" + number).innerHTML = "Position Date: ---";
+
+                remakeModelInfoTable(number, combinations);
+            }
+        })
+        .on("click", () => {
+            lineLock[number] = !lineLock[number];
+
+            xPosition = x.invert(d3.mouse(d3.event.currentTarget)[0]);
+
+            if(lineLock[number]){
+                guideLine.style("display", null);
+                savingsGuideLine.style("display", null);
+                guideLine.style("stroke", "red");
+                savingsGuideLine.style("stroke", "red");
+
+                guideLine.attr("transform", 'translate(' + (x(xPosition) + rMargin.left) + ',' + rMargin.top + ')');
+                savingsGuideLine.attr("transform", 'translate(' + (x(xPosition) + savingsMargin.left) + ',' + savingsMargin.top + ')');
+
+                updateModelInfoTable(number, dataJsons, combinations, Math.floor(xPosition), displayJson);
+            }
+            else{
+                guideLine.style("stroke", "black");
+                savingsGuideLine.style("stroke", "black");
+
+                lastPosition[number] = xPosition;
+            }
+        });
+
+    d3.select("#savingsTitleSvg" + number).append('rect')
+        .attr("id", "savingsTitleCoverBox" + number)
+        .attr("class", "coverBox")
+        .attr("width", rWidth)
+        .attr("height", "50px")
+        .style("opacity", "0")
+        .style("z-index", "10")
+        .attr("transform", "translate(" + (rMargin.left) + ", 0)")
+        .on("mouseover", () => {
+            if(lineLock[number]){
+                guideLine.style("display", null);
+                savingsGuideLine.style("display", null);
+            }
+        })
+        .on("mousemove", () => {
+                if(lineLock[number]) {
+                guideLine.style("display", null);
+                savingsGuideLine.style("display", null);
+
+                xPosition = x.invert(d3.mouse(d3.event.currentTarget)[0]);
+
+                guideLine.attr("transform", 'translate(' + (x(xPosition) + rMargin.left) + ',' + rMargin.top + ')');
+                savingsGuideLine.attr("transform", 'translate(' + (x(xPosition) + savingsMargin.left) + ',' + savingsMargin.top + ')');
+
+                updateModelInfoTable(number, dataJsons, combinations, Math.floor(xPosition), displayJson);
+            }
+        })
+        .on("mouseout", () => {
+                if(lineLock[number]){
+                guideLine.style("display", "none");
+                savingsGuideLine.style("display", "none");
+
+                document.getElementById("current-position" + number).innerHTML = "Position Date: ---";
+
+                remakeModelInfoTable(number, combinations);
+            }
+        })
+        .on("click", () => {
+            lineLock[number] = !lineLock[number];
+
+            xPosition = x.invert(d3.mouse(d3.event.currentTarget)[0]);
+
+            if(lineLock[number]){
+                guideLine.style("display", null);
+                savingsGuideLine.style("display", null);
+                guideLine.style("stroke", "red");
+                savingsGuideLine.style("stroke", "red");
+
+                guideLine.attr("transform", 'translate(' + (x(xPosition) + rMargin.left) + ',' + rMargin.top + ')');
+                savingsGuideLine.attr("transform", 'translate(' + (x(xPosition) + savingsMargin.left) + ',' + savingsMargin.top + ')');
+
+                updateModelInfoTable(number, dataJsons, combinations, Math.floor(xPosition), displayJson);
+            }
+            else{
+                guideLine.style("stroke", "black");
+                savingsGuideLine.style("stroke", "black");
+
+                lastPosition[number] = xPosition;
+            }
+        });
+
+    d3.select("#savingsSvg" + number).append('rect')
+        .attr("id", "coverBox" + number)
+        .attr("class", "coverBox")
+        .attr("width", savingsWidth )
+        .attr("height", savingsHeight + savingsMargin.top )
+        .style("opacity", "0")
+        .attr("transform", "translate(" + (savingsMargin.left) + ", 0 )")
+        .on("mouseover", () => {
+            if(lineLock[number]){
+                guideLine.style("display", null);
+                savingsGuideLine.style("display", null);
+            }
+        })
+        .on("mousemove", () => {
+            if(lineLock[number]){
+                guideLine.style("display", null);
+                savingsGuideLine.style("display", null);
+
+                xPosition = x.invert(d3.mouse(d3.event.currentTarget)[0]);
+
+                guideLine.attr("transform", 'translate(' + (x(xPosition) + rMargin.left) + ',' + rMargin.top + ')');
+                savingsGuideLine.attr("transform", 'translate(' + (x(xPosition) + savingsMargin.left) + ',' + savingsMargin.top + ')');
+
+                updateModelInfoTable(number, dataJsons, combinations, Math.floor(xPosition), displayJson);
+            }
+        })
+        .on("mouseout", () => {
+                if(lineLock[number]){
+                guideLine.style("display", "none");
+                savingsGuideLine.style("display", "none");
+
+                document.getElementById("current-position" + number).innerHTML = "Position Date: ---";
+
+                remakeModelInfoTable(number, combinations);
+            }
+        })
+        .on("click", () => {
+            lineLock[number] = !lineLock[number];
+
+            xPosition = x.invert(d3.mouse(d3.event.currentTarget)[0]);
+
+            if(lineLock[number]){
+                guideLine.style("display", null);
+                savingsGuideLine.style("display", null);
+                guideLine.style("stroke", "red");
+                savingsGuideLine.style("stroke", "red");
+
+                guideLine.attr("transform", 'translate(' + (x(xPosition) + rMargin.left) + ',' + rMargin.top + ')');
+                savingsGuideLine.attr("transform", 'translate(' + (x(xPosition) + savingsMargin.left) + ',' + savingsMargin.top + ')');
+
+                updateModelInfoTable(number, dataJsons, combinations, Math.floor(xPosition), displayJson);
+            }
+            else{
+                guideLine.style("stroke", "black");
+                savingsGuideLine.style("stroke", "black");
+
+                lastPosition[number] = xPosition;
+            }
+        });
+}
+
+var positionValues = [];
+
+function updateModelInfoTable(number, dataJsons, combinations, position, displayJson){
+
+    document.getElementById("current-position" + number).innerHTML = "Position Date: " + displayJson[0][position].Date;
+
+    for(var i = combinations.length-1; 0 <= i; i--) {
+
+        positionValues[i] = [];
+
+        positionValues[i][combinations[i] + "Savings" + number] = (dataJsons[i][position].savingsPercent).toFixed(2);
+        positionValues[i][combinations[i] + "rSquared" + number] = dataJsons[i][position].rSquare.toFixed(4);
+        positionValues[i][combinations[i] + "FittedModel" + number] = dataJsons[i][position].fittedModel;
+
+        if(activeModels[number][combinations[i]]) {
+            document.getElementById(combinations[i] + "rSquared" + number).innerHTML = dataJsons[i][position].rSquare.toFixed(4);
+            document.getElementById(combinations[i] + "Savings" + number).innerHTML = (dataJsons[i][position].savingsPercent).toFixed(2);
+            document.getElementById(combinations[i] + "FittedModel" + number).innerHTML = dataJsons[i][position].fittedModel;
+        }
+    }
+}
+
+function loadGraphListeners(combinations, displayJsons){
 
     var x = d3.scaleLinear()
         .rangeRound([0, document.getElementById("graph-col").offsetWidth]);
@@ -981,6 +1512,22 @@ function loadGraphListeners(){
 
                         d3.select("#clickableTile"+i)
                             .style("fill", "gray");
+
+                        activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = false;
+                        changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
+
+                        for(var z = 0; z < tables.length; z++){
+
+                            var dataJsons = [];
+                            for(var k = 0; k < displayJsons[z].length; k++) {
+                                dataJsons[k]= [{}];
+                                for (var j = 0; j < displayJsons[z][k].length; j++) {
+                                    dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
+                                }
+                            }
+                            makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
+                            makeGuideLine(displayJsons[z], z, combinations, dataJsons);
+                        }
                     }
                     else{
                         d3.select("#line" + i)
@@ -991,6 +1538,22 @@ function loadGraphListeners(){
 
                         d3.select("#clickableTile"+i)
                             .style("fill", lineColors[clickableBoxData[i].number]);
+
+                        activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = true;
+                        changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
+
+                        for(var z = 0; z < tables.length; z++){
+
+                            var dataJsons = [];
+                            for(var k = 0; k < displayJsons[z].length; k++) {
+                                dataJsons[k]= [{}];
+                                for (var j = 0; j < displayJsons[z][k].length; j++) {
+                                    dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
+                                }
+                            }
+                            makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
+                            makeGuideLine(displayJsons[z], z, combinations, dataJsons);
+                        }
                     }
                 });
             });
@@ -1009,6 +1572,22 @@ function loadGraphListeners(){
 
                         d3.select("#clickableTile"+i)
                             .style("fill", "gray");
+
+                        activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = false;
+                        changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
+
+                        for(var z = 0; z < tables.length; z++){
+
+                            var dataJsons = [];
+                            for(var k = 0; k < displayJsons[z].length; k++) {
+                                dataJsons[k]= [{}];
+                                for (var j = 0; j < displayJsons[z][k].length; j++) {
+                                    dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
+                                }
+                            }
+                            makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
+                            makeGuideLine(displayJsons[z], z, combinations, dataJsons);
+                        }
                     }
                     else{
                         d3.select("#line" + i)
@@ -1019,6 +1598,22 @@ function loadGraphListeners(){
 
                         d3.select("#clickableTile"+i)
                             .style("fill", lineColors[clickableBoxData[i].number]);
+
+                        activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = true;
+                        changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
+
+                        for(var z = 0; z < tables.length; z++){
+
+                            var dataJsons = [];
+                            for(var k = 0; k < displayJsons[z].length; k++) {
+                                dataJsons[k]= [{}];
+                                for (var j = 0; j < displayJsons[z][k].length; j++) {
+                                    dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
+                                }
+                            }
+                            makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
+                            makeGuideLine(displayJsons[z], z, combinations, dataJsons);
+                        }
                     }
                 });
             });
@@ -1037,6 +1632,22 @@ function loadGraphListeners(){
 
                         d3.select(this)
                             .style("fill", "gray");
+
+                        activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = false;
+                        changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
+
+                        for(var z = 0; z < tables.length; z++){
+
+                            var dataJsons = [];
+                            for(var k = 0; k < displayJsons[z].length; k++) {
+                                dataJsons[k]= [{}];
+                                for (var j = 0; j < displayJsons[z][k].length; j++) {
+                                    dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
+                                }
+                            }
+                            makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
+                            makeGuideLine(displayJsons[z], z, combinations, dataJsons);
+                        }
                     }
                     else{
                         d3.select("#line" + i)
@@ -1047,6 +1658,22 @@ function loadGraphListeners(){
 
                         d3.select(this)
                             .style("fill", lineColors[clickableBoxData[i].number]);
+
+                        activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = true;
+                        changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
+
+                        for(var z = 0; z < tables.length; z++){
+
+                            var dataJsons = [];
+                            for(var k = 0; k < displayJsons[z].length; k++) {
+                                dataJsons[k]= [{}];
+                                for (var j = 0; j < displayJsons[z][k].length; j++) {
+                                    dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
+                                }
+                            }
+                            makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
+                            makeGuideLine(displayJsons[z], z, combinations, dataJsons);
+                        }
                     }
                 });
             });
@@ -1298,9 +1925,6 @@ function exportData(){
 
                     var outputKeys = Object.keys(tables[z]["results"][k]);
 
-                    console.log(outputKeys);
-
-
                     //date
                     export_formatJson[i][outputKeys[0]] = tables[z]["results"][k][outputKeys[0]][i][0];
 
@@ -1314,58 +1938,6 @@ function exportData(){
 
     }
 
-
-    // fields[0] = ["Date"];
-    //
-    // export_formatJson.Date = "";
-    // for(var i = 0; i < tables[0]["results"][0]["Date"].length; i++){
-    //     export_formatJson.Date += tables[0]["results"][0]["Date"][i][0] + ",";
-    // }
-    //
-    // for(var i = 0; i < tables[0]["results"].length; i++){
-    //
-    //     var outputKeys = Object.keys(tables[0]["results"][i]);
-    //
-    //     for(var j = 0; j < outputKeys.length; j++) {
-    //         fields[i*outputKeys.length+j] = outputKeys[j];
-    //         export_formatJson[fields[i*outputKeys.length+j]] = "";
-    //
-    //         for(var k = 0; k < tables[0]["results"][i][outputKeys[j]].length; k++){
-    //             export_formatJson[fields[i*outputKeys.length+j]] += tables[0]["results"][i][outputKeys[j]][k] + ",";
-    //         }
-    //     }
-    // }
-
-
-    // /* make the worksheet */
-    // var ws = XLSX.utils.json_to_sheet(export_formatJson);
-    //
-    // /* add to workbook */
-    // var wb = XLSX.utils.book_new();
-    // XLSX.utils.book_append_sheet(wb, ws, "People");
-    //
-    // /* write workbook (use type 'binary') */
-    // var wbout = XLSX.write(wb, {bookType:'xlsx', type:'binary'});
-    //
-    // /* generate a download */
-    // function s2ab(s) {
-    //     var buf = new ArrayBuffer(s.length);
-    //     var view = new Uint8Array(buf);
-    //     for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
-    //     return buf;
-    // }
-    //
-    //
-    // saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), "sheetjs.xlsx");
-    //
-    // var csv = XLSX.utils.json_to_sheet(export_formatJson);
-    // console.log(csv);
-
-
-
-    // console.log(outputKeys);
-    // console.log(export_formatJson);
-    console.log(export_formatJson);
     const json2csvParser = new Json2csvParser({ outputKeys });
     const csv = json2csvParser.parse(export_formatJson);
 
