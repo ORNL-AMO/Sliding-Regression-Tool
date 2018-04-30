@@ -614,6 +614,8 @@ function displayGraphs(){
             }
         }
 
+        lineLock[i] = true;
+
         makeGraph(displayJsons[i], i, combinations, dataJsons);
         makeSavingsGraph(displayJsons[i], i, combinations, dataJsons);
         makeGuideLine(displayJsons[i], i, combinations, dataJsons);
@@ -1180,8 +1182,6 @@ function makeSavingsGraph(displayJson, number, combinations, dataJsons){
         }
     }
 
-    console.log(mins);
-
     y.domain([ Math.min.apply(null, mins), Math.max.apply(null, maxs)]);
 
     for(var i = 0; i < dataJsons.length; i++) {
@@ -1213,6 +1213,7 @@ function makeSavingsGraph(displayJson, number, combinations, dataJsons){
 }
 
 var lineLock = [];
+var lastPosition = [];
 
 function makeGuideLine(displayJson, number, combinations, dataJsons){
 
@@ -1220,7 +1221,6 @@ function makeGuideLine(displayJson, number, combinations, dataJsons){
     d3.selectAll("#savingsSvg" + number).selectAll("line").remove();
 
     //Set up a guidline lock bool for each dependent graph; True = unlocked, False = locked
-    lineLock[number] = true;
 
     var rWidth = document.getElementById("graph-container" + number).offsetWidth - rMargin.left - rMargin.right // Use the window's width
         , rHeight = document.getElementById("graph-container" + number).offsetHeight - rMargin.top - rMargin.bottom; // Use the window's height
@@ -1260,6 +1260,21 @@ function makeGuideLine(displayJson, number, combinations, dataJsons){
 
     document.getElementById("savingsGraph-title" + number).offsetHeight;
 
+
+    if(!lineLock[number]){
+
+        guideLine.style("display", null);
+        savingsGuideLine.style("display", null);
+
+        guideLine.style("stroke", "black");
+        savingsGuideLine.style("stroke", "black");
+
+        guideLine.attr("transform", 'translate(' + (x(lastPosition[number]) + rMargin.left) + ',' + rMargin.top + ')');
+        savingsGuideLine.attr("transform", 'translate(' + (x(lastPosition[number]) + savingsMargin.left) + ',' + savingsMargin.top + ')');
+
+    }
+
+
     d3.select("#rSvg" + number).append('rect')
         .attr("id", "coverBox" + number)
         .attr("class", "coverBox")
@@ -1283,7 +1298,6 @@ function makeGuideLine(displayJson, number, combinations, dataJsons){
                 guideLine.attr("transform", 'translate(' + (x(xPosition) + rMargin.left) + ',' + rMargin.top + ')');
                 savingsGuideLine.attr("transform", 'translate(' + (x(xPosition) + savingsMargin.left) + ',' + savingsMargin.top + ')');
 
-
                 updateModelInfoTable(number, dataJsons, combinations, Math.floor(xPosition), displayJson);
             }
         })
@@ -1300,13 +1314,13 @@ function makeGuideLine(displayJson, number, combinations, dataJsons){
         .on("click", () => {
             lineLock[number] = !lineLock[number];
 
+            xPosition = x.invert(d3.mouse(d3.event.currentTarget)[0]);
+
             if(lineLock[number]){
                 guideLine.style("display", null);
                 savingsGuideLine.style("display", null);
                 guideLine.style("stroke", "red");
                 savingsGuideLine.style("stroke", "red");
-
-                xPosition = x.invert(d3.mouse(d3.event.currentTarget)[0]);
 
                 guideLine.attr("transform", 'translate(' + (x(xPosition) + rMargin.left) + ',' + rMargin.top + ')');
                 savingsGuideLine.attr("transform", 'translate(' + (x(xPosition) + savingsMargin.left) + ',' + savingsMargin.top + ')');
@@ -1316,6 +1330,8 @@ function makeGuideLine(displayJson, number, combinations, dataJsons){
             else{
                 guideLine.style("stroke", "black");
                 savingsGuideLine.style("stroke", "black");
+
+                lastPosition[number] = xPosition;
             }
         });
 
@@ -1357,15 +1373,15 @@ function makeGuideLine(displayJson, number, combinations, dataJsons){
             }
         })
         .on("click", () => {
-                lineLock[number] = !lineLock[number];
+            lineLock[number] = !lineLock[number];
+
+            xPosition = x.invert(d3.mouse(d3.event.currentTarget)[0]);
 
             if(lineLock[number]){
                 guideLine.style("display", null);
                 savingsGuideLine.style("display", null);
                 guideLine.style("stroke", "red");
                 savingsGuideLine.style("stroke", "red");
-
-                xPosition = x.invert(d3.mouse(d3.event.currentTarget)[0]);
 
                 guideLine.attr("transform", 'translate(' + (x(xPosition) + rMargin.left) + ',' + rMargin.top + ')');
                 savingsGuideLine.attr("transform", 'translate(' + (x(xPosition) + savingsMargin.left) + ',' + savingsMargin.top + ')');
@@ -1375,6 +1391,8 @@ function makeGuideLine(displayJson, number, combinations, dataJsons){
             else{
                 guideLine.style("stroke", "black");
                 savingsGuideLine.style("stroke", "black");
+
+                lastPosition[number] = xPosition;
             }
         });
 
@@ -1417,13 +1435,13 @@ function makeGuideLine(displayJson, number, combinations, dataJsons){
         .on("click", () => {
             lineLock[number] = !lineLock[number];
 
+            xPosition = x.invert(d3.mouse(d3.event.currentTarget)[0]);
+
             if(lineLock[number]){
                 guideLine.style("display", null);
                 savingsGuideLine.style("display", null);
                 guideLine.style("stroke", "red");
                 savingsGuideLine.style("stroke", "red");
-
-                xPosition = x.invert(d3.mouse(d3.event.currentTarget)[0]);
 
                 guideLine.attr("transform", 'translate(' + (x(xPosition) + rMargin.left) + ',' + rMargin.top + ')');
                 savingsGuideLine.attr("transform", 'translate(' + (x(xPosition) + savingsMargin.left) + ',' + savingsMargin.top + ')');
@@ -1433,6 +1451,8 @@ function makeGuideLine(displayJson, number, combinations, dataJsons){
             else{
                 guideLine.style("stroke", "black");
                 savingsGuideLine.style("stroke", "black");
+
+                lastPosition[number] = xPosition;
             }
         });
 }
@@ -1447,10 +1467,9 @@ function updateModelInfoTable(number, dataJsons, combinations, position, display
 
         positionValues[i] = [];
 
-        positionValues[i][combinations[i] + "Savings" + number] = dataJsons[i][position].rSquare.toFixed(4);
-        positionValues[i][combinations[i] + "rSquared" + number] = (dataJsons[i][position].savingsPercent * 100).toFixed(2);
+        positionValues[i][combinations[i] + "Savings" + number] = (dataJsons[i][position].savingsPercent).toFixed(2);
+        positionValues[i][combinations[i] + "rSquared" + number] = dataJsons[i][position].rSquare.toFixed(4);
         positionValues[i][combinations[i] + "FittedModel" + number] = dataJsons[i][position].fittedModel;
-
 
         if(activeModels[number][combinations[i]]) {
             document.getElementById(combinations[i] + "rSquared" + number).innerHTML = dataJsons[i][position].rSquare.toFixed(4);
@@ -1458,7 +1477,6 @@ function updateModelInfoTable(number, dataJsons, combinations, position, display
             document.getElementById(combinations[i] + "FittedModel" + number).innerHTML = dataJsons[i][position].fittedModel;
         }
     }
-
 }
 
 function loadGraphListeners(combinations, displayJsons){
@@ -1485,7 +1503,6 @@ function loadGraphListeners(combinations, displayJsons){
             var i = i;
             d3.select(this)
                 .on("click", () => {
-                    console.log(i);
                     if(document.getElementById("line"+i).style.strokeWidth !== "0px") {
                         d3.select("#line" + i)
                             .style("stroke-width", "0px");
@@ -1546,7 +1563,6 @@ function loadGraphListeners(combinations, displayJsons){
             var i = i;
             d3.select(this)
                 .on("click", () => {
-                    console.log(i);
                     if(document.getElementById("line"+i).style.strokeWidth !== "0px") {
                         d3.select("#line" + i)
                             .style("stroke-width", "0px");
@@ -1607,7 +1623,6 @@ function loadGraphListeners(combinations, displayJsons){
             var i = i;
             d3.select(this)
                 .on("click", () => {
-                    console.log(i);
                     if(document.getElementById("line"+i).style.strokeWidth !== "0px") {
                         d3.select("#line" + i)
                             .style("stroke-width", "0px");
