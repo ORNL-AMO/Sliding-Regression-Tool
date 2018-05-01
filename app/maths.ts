@@ -14,6 +14,8 @@ function getCombinations(array) {
 //TODO Needs work
 function findResults(json, dependentNumber){
 
+    console.log(json);
+
     var table = {
         combinations: [],
         results: [],
@@ -56,7 +58,6 @@ function findResults(json, dependentNumber){
         results[i + "fittedModel"] = [];
 
         for(var k = 0; k < independentCombinations[i].length; k++){
-            console.log(independentCombinations[i][k]);
             results[i + independentCombinations[i][k] + "Coeff"] = [];
             results[i + independentCombinations[i][k] + "pvalue"] = [];
         }
@@ -90,6 +91,8 @@ function findResults(json, dependentNumber){
     }
 
     table.results = totalResult;
+
+    console.log(table);
 
     return table;
 

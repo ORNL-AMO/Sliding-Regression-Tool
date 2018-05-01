@@ -847,6 +847,12 @@ function calc3(num, dependent, independent, independentNames){
 
                 SE += residual[i];
                 //console.log(Number(Y[i+1]));
+
+                //remove commas for getting number
+                // Y[i+1] = parseFloat(Y[i+1].replace(/,/g, ''));
+                //
+                // console.log(Number(Y[i+1]));
+
                 ST += Number(Y[i+1]);
 
             }
@@ -1228,5 +1234,6 @@ function calc3(num, dependent, independent, independentNames){
     {
     }
 
+    console.log(model);
     return model;
 }
