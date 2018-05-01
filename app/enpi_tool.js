@@ -124,7 +124,8 @@ dropZone.addEventListener('drop', function handleDrop(e) {
         if(!rABS) data = new Uint8Array(data);
         var wb = XLSX.read(data, {type: rABS ? 'binary' : 'array'});
         /* DO SOMETHING WITH workbook HERE */
-        raw_json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {raw:false, header:1});
+
+        raw_json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[wb.SheetNames.length-1]], {raw:false, header:1});
 
         formatDisplayJson();
     };
@@ -164,6 +165,7 @@ function formatDisplayJson(){
         }
     }
 
+    console.log(display_json);
 
     setupENPI();
 }
@@ -206,10 +208,13 @@ function reformatJson(){
                 formatted_json["date"][raw_json[0][j]][i] = [raw_json[i+1][j]];
             }
             else if(types[j] == "Dependent"){
-                formatted_json["dependent"][raw_json[0][j]][i] = [raw_json[i+1][j]];
+                //console.log([raw_json[i+1][j]]);
+
+                //TODO make these not arrays
+                formatted_json["dependent"][raw_json[0][j]][i] = [parseFloat([raw_json[i+1][j]][0].replace(/,/g, ''))];
             }
             else if(types[j] == "Independent"){
-                formatted_json["independent"][raw_json[0][j]][i] = [raw_json[i+1][j]];
+                formatted_json["independent"][raw_json[0][j]][i] = [parseFloat([raw_json[i+1][j]][0].replace(/,/g, ''))];
             }
         }
     }
@@ -671,7 +676,7 @@ function makeGraphElements(number){
                                                         "           <div id='savingsGraph-title" + number +"' class='col-12 savingsGraph-title' style='padding: 0px; text-align: center; background-color: #d8d9d9; height: 40px'></div>" +
                                                         "      <div id='savings-graph-container" + number + "' class='savings-graph-container'></div>\n" +
                                                         "    </div>\n" +
-                                                        "    <div id='legendCol" + number + "' class='col-2' style='padding-left: 0px'>" +
+                                                        "    <div id='legendCol" + number + "' class='col-2' style='padding-left: 0px; overflow: auto;'>" +
                                                         "       <div id='legend" + number + "' ></div>" +
                                                         "    </div>\n" +
                                                         "  </div>\n" +
@@ -786,13 +791,52 @@ function makeGraph(displayJson, number, combinations, dataJsons) {
         .attr("transform", "translate(" + (-rMargin.left) + "," + (-rMargin.top) + ")")
         .style("fill", "#d8d9d9");
 
-    var data = [];
+    var date = [];
 
     for(var i = 0; i < displayJson[0].length; i++){
-        data[i] = {"date": new Date(parseInt(displayJson[0][i]["Date"].substring(0, 4)),parseInt(displayJson[0][i]["Date"].substring(5, 7)),parseInt(displayJson[0][i]["Date"].substring(8, 10))), "value": i};
+        date[i] = {"date": new Date(parseInt(displayJson[0][i]["Date"].substring(0, 4)),parseInt(displayJson[0][i]["Date"].substring(5, 7)),parseInt(displayJson[0][i]["Date"].substring(8, 10))), "value": i};
     }
 
-    x_date.domain([data[0].date, data[data.length - 1].date]);
+    console.log(date[0].date);
+
+    if(date[0].date == "Invalid Date"){ //Test for a different date format
+
+        var day;
+        var month;
+        var year;
+
+
+        for(var i = 0; i < displayJson[0].length; i++) {
+
+            day = "";
+            month = "";
+            year = "";
+
+            var breaks = 0;
+
+            for (var j = 0; j < displayJson[0][i]["Date"].length; j++) {
+
+                if(displayJson[0][i]["Date"][j] == "/"){
+                    breaks++;
+                }
+                else if(breaks == 0){
+                    day += displayJson[0][i]["Date"][j];
+                }
+                else if(breaks == 1){
+                    month += displayJson[0][i]["Date"][j];
+                }
+                else if(breaks == 2){
+                    year += displayJson[0][i]["Date"][j];
+                }
+
+            }
+
+            date[i] = {"date": new Date(year, month, day), "value": i};
+
+        }
+    }
+
+    x_date.domain([date[0].date, date[date.length - 1].date]);
 
     // Add the X Axis
     svg.append("g")
