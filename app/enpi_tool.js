@@ -127,6 +127,16 @@ dropZone.addEventListener('drop', function handleDrop(e) {
 
         raw_json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[wb.SheetNames.length-1]], {raw:false, header:1});
 
+        console.log(raw_json);
+        //clean raw_json of null rows
+        for(var i = 0; i < raw_json.length; i++){
+            console.log(raw_json[i]);
+            if(raw_json[i].length == 0){ //null position
+                raw_json.splice(i, 1);
+            }
+        }
+        console.log(raw_json);
+
         formatDisplayJson();
     };
     if(rABS) reader.readAsBinaryString(f); else reader.readAsArrayBuffer(f);
@@ -165,8 +175,6 @@ function formatDisplayJson(){
         }
     }
 
-    console.log(display_json);
-
     setupENPI();
 }
 
@@ -177,6 +185,8 @@ function reformatJson(){
     formatted_json["date"];
     formatted_json["dependent"];
     formatted_json["independent"];
+
+    console.log(raw_json);
 
     for(var i = 0; i < raw_json[0].length; i++){
         if(i == 0){
@@ -208,10 +218,8 @@ function reformatJson(){
                 formatted_json["date"][raw_json[0][j]][i] = [raw_json[i+1][j]];
             }
             else if(types[j] == "Dependent"){
-                //console.log([raw_json[i+1][j]]);
-
                 //TODO make these not arrays
-                formatted_json["dependent"][raw_json[0][j]][i] = [parseFloat([raw_json[i+1][j]][0].replace(/,/g, ''))];
+                formatted_json["dependent"][raw_json[0][j]][i] = [parseFloat([raw_json[i + 1][j]][0].replace(/,/g, ''))];
             }
             else if(types[j] == "Independent"){
                 formatted_json["independent"][raw_json[0][j]][i] = [parseFloat([raw_json[i+1][j]][0].replace(/,/g, ''))];
@@ -284,11 +292,7 @@ var reg_model = {};
 function setupENPI(){
     clearData();
 
-    //reg_model = calc2(5, formatted_json);
-
-    //fillDataBoxs(reg_model);
     fillDataTable(display_json);
-    //doRegression(formatted_json)
 }
 
 
@@ -318,9 +322,6 @@ function calcENPI(){
 
         for(var i = 0; i < numberOfDependents; i++) {
             tables[i] = findResults(formatted_json, i);
-
-            //findSavingsLine(tables[i], formatted_json, i);
-
         }
 
         var displayJsons = [];
@@ -338,12 +339,6 @@ function calcENPI(){
 
         document.getElementById("display-format-col").style.display = "inline";
         document.getElementById("export-btn").style.display = "inline";
-
-
-        //Works, but do heat map first
-        //loadModelContainer(numberOfDependents);
-
-        //document.getElementById("model-selection-row").style.display = "inline";
     }
 }
 
