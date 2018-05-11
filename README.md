@@ -2,7 +2,7 @@
 
 **Summary**
 
-This is a application used to preform linear regression based math on excel files of energy data to find rSquare values, savings percentages, fitted models, and p values (still in the works). Data is shown through two different ways, the first being a heatmap based on rSquare values, and the second being a graph of both rSquare and savings percentage.
+This is a application used to preform linear regression based math on excel files of energy data to find rSquare values, savings percentages, fitted models, and p values (still in the works). Data is shown through two different ways, the first being a heatmap based on rSquare values, and the second being a graph of both rSquare values and savings percentage.
 
 ## To Use
 
