@@ -1,4 +1,4 @@
-/* d3 = require('d3');
+d3 = require('d3');
 Json2csvParser = require('json2csv').Parser;
 converter = require('json-2-csv');
 saveAs = require('file-saver').saveAs;
@@ -1997,5 +1997,3 @@ function date(){
 
 
 
-
- */
