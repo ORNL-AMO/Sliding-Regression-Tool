@@ -1,4 +1,4 @@
-d3 = require('d3');
+/* d3 = require('d3');
 Json2csvParser = require('json2csv').Parser;
 converter = require('json-2-csv');
 saveAs = require('file-saver').saveAs;
@@ -144,9 +144,13 @@ dropZone.addEventListener('drop', function handleDrop(e) {
 
 function formatDisplayJson(){
 
-    display_json["date"];
-    display_json["values"];
+    display_json["date"] = [];
+    display_json["values"] = [];
 
+    //header row
+    var header = raw_json[0]
+    
+    /*
     for(var i = 0; i < raw_json[0].length; i++){
         if(i == 0){
             display_json["date"] = [];
@@ -155,23 +159,22 @@ function formatDisplayJson(){
             display_json["values"] = [];
         }
     }
-    for(var i = 0; i < raw_json[0].length; i++){
-        if(i == 0){
-            display_json["date"][raw_json[0][i]] = [];
-        }
-        else{
-            display_json["values"][raw_json[0][i]] = [];
-        }
+    */
+
+    //creating header
+    display_json["date"][header[0]] = [];
+    for(var i = 1; i < header.length; i++){
+        display_json["values"][header[i]] = [];
     }
 
-    for( var i = 0; i < raw_json.length-1; i++) {
-        for (var j = 0; j < raw_json[0].length; j++) {
-            if(j == 0){
-                display_json["date"][raw_json[0][j]][i] = [raw_json[i+1][j]];
-            }
-            else{
-                display_json["values"][raw_json[0][j]][i] = [raw_json[i+1][j]];
-            }
+    //remaining rows (values)
+    for (var i = 1; i < raw_json.length; i++) {
+        //add date
+        display_json["date"][header[0]].push(raw_json[i][0]);
+        //for each column
+        for (var j = 1; j < header.length; j++) {
+            //add remaining values
+            display_json["values"][header[j]].push(raw_json[i][j]);
         }
     }
 
@@ -1995,3 +1998,4 @@ function date(){
 
 
 
+ */
