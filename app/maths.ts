@@ -53,10 +53,11 @@ function findResults(json, dependentNumber){
             Date: [],
         };
         results["rSquare"] = [];
+        results[i + "rSquare"] = [];
         results["comboNumber"] = [];
         results[i + "Intercept"] = [];
         results[i + "fittedModel"] = [];
-        results["pValue"] = [];
+        results[i + "pValue"] = [];
 
         for(var k = 0; k < independentCombinations[i].length; k++){
             results[i + independentCombinations[i][k] + "Coeff"] = [];
@@ -77,9 +78,10 @@ function findResults(json, dependentNumber){
             results.Date[j] = json.date[dateKeys[0]][j];
 
             results["rSquare"][j] = model.rSquare;
+            results[i + "rSquare"][j] = model.rSquare;
             results["comboNumber"][j] = i;
             results[i + "Intercept"][j] = model.intercept;
-            results["pValue"][j] = model.pValue;
+            results[i + "pValue"][j] = model.pValue;
 
             for(var n = 0; n < independentCombinations[i].length; n++){
                 results[i + independentCombinations[i][n] + "Coeff"][j] = model.params[n];

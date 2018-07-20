@@ -1970,7 +1970,7 @@ function exportData(){
                     //export_formatJson[i]["pValue"] = tables[z]["results"][k]["pValue"][i];
 
                     for (var j = 1; j < outputKeys.length; j++) {
-                        if(outputKeys[j] != "comboNumber"){
+                        if(outputKeys[j] != "comboNumber" && outputKeys[j] != "rSquare"){
                             export_formatJson[i]["(" + dependentNames[z] + ")" + outputKeys[j]] = tables[z]["results"][k][outputKeys[j]][i];
                         }
                     }
