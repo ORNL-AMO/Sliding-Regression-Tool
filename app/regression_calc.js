@@ -857,12 +857,12 @@ function calc3(num, dependent, independent, independentNames) {
             var dfNum, dfDenom, pValue;
             //number of parameters in model
             dfNum = M;
-            //number of data points - number of parameters
-            dfDenom = N - M;
+            //number of data points - number of parameters - 1
+            dfDenom = N - M - 1;
             pValue = jStat.ftest(FR, dfNum, dfDenom);
             //console.log("F-Statistic: " + FR);
             model.fStatistic = FR;
-            console.log("P-value: " + pValue);
+            //console.log("P-value: " + pValue);
             model.pValue = pValue;
             //console.log("R-Square: " + RRSQ);
             model.rSquare = RRSQ;
