@@ -56,6 +56,7 @@ function findResults(json, dependentNumber){
         results["comboNumber"] = [];
         results[i + "Intercept"] = [];
         results[i + "fittedModel"] = [];
+        results["pValue"] = [];
 
         for(var k = 0; k < independentCombinations[i].length; k++){
             results[i + independentCombinations[i][k] + "Coeff"] = [];
@@ -78,6 +79,7 @@ function findResults(json, dependentNumber){
             results["rSquare"][j] = model.rSquare;
             results["comboNumber"][j] = i;
             results[i + "Intercept"][j] = model.intercept;
+            results["pValue"][j] = model.pValue;
 
             for(var n = 0; n < independentCombinations[i].length; n++){
                 results[i + independentCombinations[i][n] + "Coeff"][j] = model.params[n];

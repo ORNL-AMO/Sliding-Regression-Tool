@@ -1966,9 +1966,11 @@ function exportData(){
 
                     //date
                     export_formatJson[i][outputKeys[0]] = tables[z]["results"][k][outputKeys[0]][i][0];
+                    //pValue for model
+                    export_formatJson[i]["pValue"] = tables[z]["results"][k]["pValue"][i];
 
                     for (var j = 1; j < outputKeys.length; j++) {
-                        if(outputKeys[j] != "comboNumber"){
+                        if(outputKeys[j] != "comboNumber" && outputKeys[j] != "pValue"){
                             export_formatJson[i]["(" + dependentNames[z] + ")" + outputKeys[j]] = tables[z]["results"][k][outputKeys[j]][i];
                         }
                     }
