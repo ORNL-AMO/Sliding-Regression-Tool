@@ -79,13 +79,27 @@ function slidingRegression() {
         return inv;
     }
 
+    calc.shiftRight = function(theNumber, k) {
+        if (k == 0) return (theNumber)
+        else {
+            var k2 = 1;
+            var num = k;
+            if (num < 0) num = -num;
+            for (var i = 1; i <= num; i++) {
+                k2 = k2 * 10
+            }
+        }
+        if (k > 0) { return (k2 * theNumber) }
+        else { return (theNumber / k2) }
+    }
+
     //rounds 'num' to have 'numDigits' significant digits
     calc.roundSigDig = function (num, numDigits) {
         with (Math) {
             if (num == 0) return (0);
             else if (abs(num) < 0.000000000001) return (0);
             var k = floor(log(abs(num)) / log(10)) - numDigits
-            var k2 = round(abs(num) * pow(10, -k)) * pow(10, k);
+            var k2 = this.shiftRight(round(this.shiftRight(abs(num), -k)), k)
             if (num > 0) return (k2);
             else return (-k2)
         }
@@ -211,15 +225,15 @@ function slidingRegression() {
             model.fittedModel = output;
 
             for (i = -1; i < this.n - 1; i++) {
-                y = this.regrCoeff[0];
+                this.y = this.regrCoeff[0];
 
 
                 for (j = 1; j <= this.m; j++) this.y += this.regrCoeff[j] * this.indep[j][i + 1];
 
                 //console.log("Predicted Y Value " + (i+2) + ": " + this.roundSigDig(y, this.sigDig));
-                model.yValues[i + 2] = "Predicted Y Value " + (i + 2) + ": " + this.roundSigDig(y, this.sigDig);
+                model.yValues[i + 2] = "Predicted Y Value " + (i + 2) + ": " + this.roundSigDig(this.y, this.sigDig);
 
-                predicted[i] = this.roundSigDig(y, this.sigDig);
+                predicted[i] = this.roundSigDig(this.y, this.sigDig);
 
                 residual[i] = (this.dep[i + 1] - predicted[i]);
 
@@ -650,6 +664,7 @@ function slidingRegression() {
     calc.B;
     calc.P;
     calc.invP;
+    calc.y;
 
     return calc;
 }
