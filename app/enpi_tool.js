@@ -1,3 +1,5 @@
+// import {findResults} from './app/maths.ts'
+
 d3 = require('d3');
 Json2csvParser = require('json2csv').Parser;
 converter = require('json-2-csv');

@@ -1,4 +1,3 @@
-
 function getCombinations(array) {
     const results = [[]];
     for (const value of array) {
@@ -40,6 +39,8 @@ function findResults(json, dependentNumber){
     var col = independentCombinations.length;
     var totalResult = [];
 
+    var calc = require('./app/regression_calc.js');
+
     for(var i = 0; i < col; i++){
         var result = [];
         var variables = [];
@@ -73,7 +74,7 @@ function findResults(json, dependentNumber){
                 independentVariables[k] = json.independent[independentCombinations[i][k]].slice(j, j + 12);
                 independentNames[k] = independentCombinations[i][k];
             }
-            var model = calc3(5, dependent, independentVariables, independentNames);
+            var model = calc.calc3(5, dependent, independentVariables, independentNames);
 
             results.Date[j] = json.date[dateKeys[0]][j];
 
