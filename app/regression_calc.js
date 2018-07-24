@@ -1,102 +1,81 @@
 var jStat = require('jStat').jStat;
-
 var json;
 
-//Number of rows (datapoints)
-var N = 0;
-var maxN = 16;
-//Number of parameters (independent)
-var M = 4;
-var X = new makeArray2(M, maxN);
-var Y = new Array;
-var SX = 0;
-var SY = 0;
-var SXX = 0;
-var SXY = 0;
-var SYY = 0;
-var m = 0;
-var abort = false;
-
-
-var regrCoeff = new Array;
-var sigDig = 3;
-
-
-
 function slidingRegression() {
+    var calc = {};
 
-}
+    /***** methods *****/
 
-
-
-
-function makeArray2(X, Y) {
-    var count;
-    this.length = X + 1;
-    for (var count = 0; count <= X + 1; count++)
-        this[count] = new makeArray(Y);
-}
-
-function makeArray(Y) {
-    var count;
-    this.length = Y + 1;
-    for (var count = 0; count <= Y + 1; count++)
-        this[count] = 0;
-}
-
-function det(A) {
-    var Length = A.length - 1;
-    if (Length == 1) return (A[1][1]);
-    else {
-        var i;
-        var sum = 0;
-        var factor = 1;
-        for (var i = 1; i <= Length; i++) {
-            if (A[1][i] != 0) {
-                minor = new makeArray2(Length - 1, Length - 1);
-                var m;
-                var n;
-                var theColumn;
-                for (var m = 1; m <= Length - 1; m++) {
-                    if (m < i) theColumn = m;
-                    else theColumn = m + 1;
-                    for (var n = 1; n <= Length - 1; n++) {
-                        minor[n][m] = A[n + 1][theColumn];
-                        // alert(minor[n][m]);
-                    }
-                }
-                sum = sum + A[1][i] * factor * det(minor);
-            }
-            factor = -factor;
-        } // end i
+    //initializes a 'len' long array with all 0 values
+    calc.makeArray = function(len) {
+        var count;
+        this.length = len + 1;
+        for (var count = 0; count <= len + 1; count++)
+            this[count] = 0;
     }
-    return (sum);
-}
 
-function inverse(A) {
-    var Length = A.length - 1;
-    var B = new makeArray2(Length, Length);
-    var d = det(A);
-    if (d == 0) alert("singular matrix--check data");
-    else {
-        var i;
-        var j;
-        for (var i = 1; i <= Length; i++) {
-            for (var j = 1; j <= Length; j++) {
+    //initializes an x by y matrix with all 0 values
+    calc.makeMatrix = function(x, y) {
+        var count;
+        this.length = x + 1;
+        for (var count = 0; count <= x + 1; count++)
+            this[count] = new makeArray(y);
+    }
+    
+    //calculates the determinant of a square matrix
+    calc.det = function(mat) {
+        //must be square
+        if (mat.length != mat[0].length) {
+            throw "calc.det called with non-square matrix."
+        }
+        var len = mat.length - 1;
+        if (len == 1) return (mat[1][1]);
+        else {
+            var sum = 0;
+            var factor = 1;
+            for (var i = 1; i <= len; i++) {
+                if (mat[1][i] != 0) {
+                    var minor = new makeMatrix(len - 1, len - 1);
+                    var col;
+                    for (var m = 1; m < len; m++) {
+                        if (m < i) col = m;
+                        else col = m + 1;
+                        for (var n = 1; n < len; n++) {
+                            minor[n][m] = mat[n + 1][col];
+                        }
+                    }
+                    sum = sum + mat[1][i] * factor * det(minor);
+                }
+                factor = -factor;
+            } // end i
+        }
+        return sum;
+    }
 
-                minor = new makeArray2(Length - 1, Length - 1);
-                var m;
-                var n;
-                var theColumn;
-                var theRow;
-                for (var m = 1; m <= Length - 1; m++) {
-                    if (m < j) theColumn = m;
-                    else theColumn = m + 1;
-                    for (var n = 1; n <= Length - 1; n++) {
-                        if (n < i) theRow = n;
-                        else theRow = n + 1;
-                        minor[n][m] = A[theRow][theColumn];
-                        // alert(minor[n][m]);
+    //returns the inverse of a square matrix
+    calc.inverse = function(mat) {
+        //must be square
+        if (mat.length != mat[0].length) {
+            throw "calc.inverse called with non-square matrix."
+        }
+        var determinant = det(mat);
+        if (determinant == 0) {
+            throw "calc.inverse called with singular matrix.";
+        }
+        var len = mat.length - 1;
+        var inv = new makeMatrix(len, len);
+
+        for (var i = 1; i <= len; i++) {
+            for (var j = 1; j <= len; j++) {
+                minor = new makeMatrix(len - 1, len - 1);
+                var col, row;
+                for (var m = 1; m <= len - 1; m++) {
+                    if (m < j) col = m;
+                    else col = m + 1;
+                    for (var n = 1; n <= len - 1; n++) {
+                        if (n < i) row = n;
+                        else row = n + 1;
+                        minor[n][m] = mat[row][col];
                     }
                 }
 
@@ -104,86 +83,76 @@ function inverse(A) {
                 if (temp == Math.round(temp)) factor = 1;
                 else factor = -1;
 
-                B[j][i] = det(minor) * factor / d;
-
-
-            } // j
-
+                inv[j][i] = det(minor) * factor / determinant;
+            }
         }
+        return inv;
     }
-    return (B);
-}
 
-function shiftRight(theNumber, k) {
-    if (k == 0) return (theNumber)
-    else {
-        var k2 = 1;
-        var num = k;
-        if (num < 0) num = -num;
-        for (var i = 1; i <= num; i++) {
-            k2 = k2 * 10
-        }
-    }
-    if (k > 0) { return (k2 * theNumber) }
-    else { return (theNumber / k2) }
-}
-
-function roundSigDig(theNumber, numDigits) {
-    with (Math) {
-        if (theNumber == 0) return (0);
-        else if (abs(theNumber) < 0.000000000001) return (0);
-        else {
-            var k = floor(log(abs(theNumber)) / log(10)) - numDigits
-            var k2 = shiftRight(round(shiftRight(abs(theNumber), -k)), k)
-            if (theNumber > 0) return (k2);
+    //rounds 'num' to have 'numDigits' significant digits
+    calc.roundSigDig = function(num, numDigits) {
+        with (Math) {
+            if (num == 0) return (0);
+            else if (abs(num) < 0.000000000001) return (0);
+            var k = floor(log(abs(num)) / log(10)) - numDigits
+            var k2 = round(abs(num) * pow(10,-k)) * pow(10,k);
+            if (num > 0) return (k2);
             else return (-k2)
         }
     }
-}
 
-function clearForms() {
-    document.theForm.output.value = ""
-    document.theForm.residual_values.value = ""
-    document.theForm.RMEAN.value = ""
-
-    document.theForm.ESQV.value = ""
-    document.theForm.mean1.value = ""
-    document.theForm.mean2.value = ""
-
-    document.theForm.VR1.value = ""
-    document.theForm.VR2.value = ""
-    document.theForm.FR1.value = ""
-
-    document.theForm.SR2.value = ""
-    document.theForm.DW.value = ""
-    document.theForm.MAE.value = ""
-
-
-    document.theForm.NCON.value = ""
-    for (i = 0; i <= 15; i++) {
-        document.theForm[3 + 6 * i].value = ""
-        document.theForm[4 + 6 * i].value = ""
-        document.theForm[5 + 6 * i].value = ""
-        document.theForm[6 + 6 * i].value = ""
-        document.theForm[7 + 6 * i].value = ""
-        document.theForm[8 + 6 * i].value = ""
+    calc.contruct = function(dependent, independent) {
+        with (Math) {
+            this.n = dependent.length;
+            this.m = independent.length;
+            indep = new makeMatrix(m, n);
+    
+            //Runs through as many rows as there are dates available
+            for (var i = 0; i < n; i++) {
+                //Runs through each independent variable
+                for (var j = 0; j < m; j++) {
+                    this.indep[j + 1][i] = independent[j][i];
+                    /*
+                    if (xBar[j]) {
+                        xBar[j] = +xBar[j] + +independent[j][i];
+                    } else {
+                        xBar[j] = independent[j][i];
+                    }*/ 
+                }
+                this.dep[i] = dependent[i][0];
+            }
+    
+            for (j = 0; j < numInd; j++) {
+                xBar[j] /= dependent.length;
+            }
+    
+        }
+        this.m = numInd;
     }
-}
 
-function stripSpaces(InString) {
-    OutString = "";
-    for (Count = 0; Count < InString.length; Count++) {
-        TempChar = InString.substring(Count, Count + 1);
-        if (TempChar != " ")
-            OutString = OutString + TempChar;
-    }
-    return (OutString);
-}
+    /***** member variables *****/
 
+    //Number of rows (datapoints)
+    calc.n = 0;
+    calc.maxN = 16;
+    //Number of parameters (independent)
+    calc.m = 0;
+    calc.indep;
+    calc.dep;
+    calc.xBar = new Array;
+    //sum of squares of x (sum(xi-xBar))
+    calc.xSS = new Array;
+    calc.SX = 0;
+    calc.SY = 0;
+    calc.SXX = 0;
+    calc.SXY = 0;
+    calc.SYY = 0;
+    calc.m = 0;
+    calc.regrCoeff = new Array;
+    calc.sigDig = 3;
+}
+/*
 function buildxy() {
-    e = 2.718281828459045;
-    pi = 3.141592653589793;
-    abort = false;
 
     with (Math) {
         N = 0;
@@ -210,40 +179,14 @@ function buildxy() {
 
         }
     }
-    M = numvariables;
+    this.m = numvariables;
 }
+*/
 
-function buildxy2(dependent, independent) {
-    e = 2.718281828459045;
-    pi = 3.141592653589793;
-    abort = false;
 
-    with (Math) {
-        N = 0;
-        var searching = true;
-
-        //This is set to the number of independent because we have in our json
-        var numvariables = independent.length;
-
-        //Runs through as many rows as there are dates available
-        for (var i = 0; i < dependent.length; i++) {
-
-            for (var j = 0; j < numvariables; j++) {
-                X[j + 1][N] = independent[j][N];
-            }
-
-            Y[N] = dependent[N][0];
-
-            N++;
-
-        }
-    }
-    M = numvariables;
-}
 
 
 function linregr() {
-    if (!abort) {
         e = 2.718281828459045;
         pi = 3.141592653589793;
         var k;
@@ -251,42 +194,41 @@ function linregr() {
         var j;
         var sum;
 
-        B = new makeArray(M + 1);
-        P = new makeArray2(M + 1, M + 1);
-        invP = new makeArray2(M + 1, M + 1);
-        var mtemp = M + 1;
+        B = new makeArray(this.m + 1);
+        P = new makeMatrix(this.m + 1, this.m + 1);
+        invP = new makeMatrix(this.m + 1, this.m + 1);
+        var mtemp = this.m + 1;
 
         //              if (N < M+1) alert("your need at least "+ mtemp +" points");
         with (Math) {
-            for (i = 0; i < N; i++) X[0][i] = 1;
-            for (i = 1; i <= M + 1; i++) {
+            for (i = 0; i < this.n; i++) this.indep[0][i] = 1;
+            for (i = 1; i <= this.m + 1; i++) {
                 sum = 0;
-                for (k = 0; k < N; k++) {
-                    sum = sum + X[i - 1][k] * Y[k];
+                for (k = 0; k < this.n; k++) {
+                    sum = sum + this.indep[i - 1][k] * this.dep[k];
                 }
                 B[i] = sum;
 
-                for (j = 1; j <= M + 1; j++) {
+                for (j = 1; j <= this.m + 1; j++) {
                     sum = 0;
-                    for (k = 0; k < N; k++) sum = sum + X[i - 1][k] * X[j - 1][k];
+                    for (k = 0; k < this.n; k++) sum = sum + this.indep[i - 1][k] * this.indep[j - 1][k];
                     P[i][j] = sum;
                 }
             }
 
             invP = inverse(P);
-            for (k = 0; k <= M; k++) {
+            for (k = 0; k <= this.m; k++) {
                 sum = 0;
 
-                for (j = 1; j <= M + 1; j++) {
+                for (j = 1; j <= this.m + 1; j++) {
                     sum = sum + invP[k + 1][j] * B[j];
                 }
                 // alert("here");
                 regrCoeff[k] = sum;
             }
         }
-    }
 }
-
+/*
 function calc2() {
 
     var num = calc2.arguments[0];
@@ -334,8 +276,8 @@ function calc2() {
             var ST = 0;
 
 
-            for (i = 1; i <= M; i++) {
-                output += " + (" + roundSigDig(regrCoeff[i], sigDig) + ")X" + i;
+            for (i = 1; i <= this.m; i++) {
+                output += " + (" + roundSigDig(regrCoeff[i], sigDig) + ")f" + i;
                 model.params[i - 1] = roundSigDig(regrCoeff[i], sigDig);
             }
 
@@ -347,7 +289,7 @@ function calc2() {
                 y = regrCoeff[0];
 
 
-                for (j = 1; j <= M; j++) y += regrCoeff[j] * X[j][i + 1];
+                for (j = 1; j <= this.m; j++) y += regrCoeff[j] * X[j][i + 1];
 
                 //console.log("Predicted Y Value " + (i+2) + ": " + roundSigDig(y, sigDig));
                 model.yValues[i + 2] = "Predicted Y Value " + (i + 2) + ": " + roundSigDig(y, sigDig);
@@ -387,7 +329,7 @@ function calc2() {
 
             RRSQ = 1 - (SSE / SST);
 
-            FR = ((N - M - 1) * (SST - SSE)) / (M * SSE);
+            FR = ((N - this.m - 1) * (SST - SSE)) / (this.m * SSE);
             //console.log("F-Statistic: " + FR);
             model.fStatistic = FR;
             //console.log("R-Square: " + RRSQ);
@@ -741,6 +683,7 @@ function calc2() {
     }
     return model;
 }
+*/
 
 function calc3(num, dependent, independent, independentNames) {
 
@@ -777,7 +720,7 @@ function calc3(num, dependent, independent, independentNames) {
     }
     else if (num == 5) {
         with (Math) {
-            buildxy2(dependent, independent);
+            construct(dependent, independent);
 
             linregr();
 
@@ -788,7 +731,7 @@ function calc3(num, dependent, independent, independentNames) {
             var SE = 0;
             var ST = 0;
 
-            for (i = 1; i <= M; i++) {
+            for (i = 1; i <= this.m; i++) {
                 output += " + (" + roundSigDig(regrCoeff[i], sigDig) + ")" + independentNames[i - 1];
                 model.params[i - 1] = roundSigDig(regrCoeff[i], sigDig);
             }
@@ -797,18 +740,18 @@ function calc3(num, dependent, independent, independentNames) {
 
             model.fittedModel = output;
 
-            for (i = -1; i < N - 1; i++) {
+            for (i = -1; i < this.n - 1; i++) {
                 y = regrCoeff[0];
 
 
-                for (j = 1; j <= M; j++) y += regrCoeff[j] * X[j][i + 1];
+                for (j = 1; j <= this.m; j++) y += regrCoeff[j] * this.indep[j][i + 1];
 
                 //console.log("Predicted Y Value " + (i+2) + ": " + roundSigDig(y, sigDig));
                 model.yValues[i + 2] = "Predicted Y Value " + (i + 2) + ": " + roundSigDig(y, sigDig);
 
                 predicted[i] = roundSigDig(y, sigDig);
 
-                residual[i] = (Y[i + 1] - predicted[i]);
+                residual[i] = (this.dep[i + 1] - predicted[i]);
 
                 //console.log("ith Residual: " + "("+(i+2)+")"+ Math.round(residual[i]*Math.pow(10,4))/Math.pow(10,4)+"    ");
 
@@ -822,7 +765,7 @@ function calc3(num, dependent, independent, independentNames) {
                 //
                 // console.log(Number(Y[i+1]));
 
-                ST += Number(Y[i + 1]);
+                ST += Number(this.dep[i + 1]);
 
             }
 
@@ -833,16 +776,16 @@ function calc3(num, dependent, independent, independentNames) {
             //console.log(ST);
             // console.log(N);
 
-            MSE = SE / N;
-            MST = ST / N;
+            MSE = SE / this.n;
+            MST = ST / this.n;
 
             var SSE = 0;
             var SST = 0;
 
-            for (i = 0; i < N; i++) {
+            for (i = 0; i < this.n; i++) {
                 SSE += (residual[i - 1] - MSE) * (residual[i - 1] - MSE);
 
-                SST += (Y[i] - MST) * (Y[i] - MST);
+                SST += (this.dep[i] - MST) * (this.dep[i] - MST);
             }
 
             // console.log(SST);
@@ -853,12 +796,12 @@ function calc3(num, dependent, independent, independentNames) {
 
             RRSQ = 1 - (SSE / SST);
 
-            FR = ((N - M - 1) * (SST - SSE)) / (M * SSE);
+            FR = ((this.n - this.m - 1) * (SST - SSE)) / (this.m * SSE);
             var dfNum, dfDenom, pValue;
             //number of parameters in model
-            dfNum = M;
+            dfNum = this.m;
             //number of data points - number of parameters - 1
-            dfDenom = N - M - 1;
+            dfDenom = this.n - this.m - 1;
             pValue = jStat.ftest(FR, dfNum, dfDenom);
             //console.log("F-Statistic: " + FR);
             model.fStatistic = FR;
@@ -925,10 +868,10 @@ function calc3(num, dependent, independent, independentNames) {
 
         var SUME = 0.0;
         var StdE = 0.0;
-        for (i = 0; i < N - 1; i++) {
+        for (i = 0; i < this.n - 1; i++) {
             SUME += residual[i - 1];
         }
-        var len = N - 1;
+        var len = this.n - 1;
         var mid = Math.floor(len / 2);
         var SUME1 = 0;
         var SUME2 = 0;
@@ -958,7 +901,7 @@ function calc3(num, dependent, independent, independentNames) {
 
         //calculate Standard Deviation
         // Run through all the input, add those that have valid values
-        for (i = 0; i < N - 1; i++) {
+        for (i = 0; i < this.n - 1; i++) {
             StdE += Math.pow((residual[i - 1] - XE), 2);
         }
         var V1 = StdE / (len - 2);
@@ -1063,7 +1006,7 @@ function calc3(num, dependent, independent, independentNames) {
             DWND = DWND + (residual[i - 1] * residual[i - 1]);
             SSE = SSE + ERR * ERR;
         }
-        var MAE = SUMABSERR / N;
+        var MAE = SUMABSERR / this.n;
         var DW = DWNN / DWND;
         MAE = Math.round(MAE * 100000) / 100000;
         //console.log("Mean Absolute Error: " + MAE);
@@ -1155,7 +1098,7 @@ function calc3(num, dependent, independent, independentNames) {
         var DP = new Array();
         DP[0] = Math.abs(jval[0] - fval[0]);
 
-        for (i = 1; i < N; i++) {
+        for (i = 1; i < this.n; i++) {
             A = Math.abs(jval[i] - fval[i]);
             B = Math.abs(fval[i] - jval[i - 1]);
             DP[i] = Math.max(A, B);
