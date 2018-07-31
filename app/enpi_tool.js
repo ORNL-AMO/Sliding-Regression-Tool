@@ -1,3 +1,5 @@
+// import {findResults} from './app/maths.ts'
+
 d3 = require('d3');
 Json2csvParser = require('json2csv').Parser;
 converter = require('json-2-csv');
@@ -1966,9 +1968,11 @@ function exportData(){
 
                     //date
                     export_formatJson[i][outputKeys[0]] = tables[z]["results"][k][outputKeys[0]][i][0];
+                    //pValue for model
+                    //export_formatJson[i]["pValue"] = tables[z]["results"][k]["pValue"][i];
 
                     for (var j = 1; j < outputKeys.length; j++) {
-                        if(outputKeys[j] != "comboNumber"){
+                        if(outputKeys[j] != "comboNumber" && outputKeys[j] != "rSquare"){
                             export_formatJson[i]["(" + dependentNames[z] + ")" + outputKeys[j]] = tables[z]["results"][k][outputKeys[j]][i];
                         }
                     }

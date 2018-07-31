@@ -1,4 +1,3 @@
-
 function getCombinations(array) {
     const results = [[]];
     for (const value of array) {
@@ -40,6 +39,8 @@ function findResults(json, dependentNumber){
     var col = independentCombinations.length;
     var totalResult = [];
 
+    var calc = require('./app/regression_calc.js');
+
     for(var i = 0; i < col; i++){
         var result = [];
         var variables = [];
@@ -53,9 +54,11 @@ function findResults(json, dependentNumber){
             Date: [],
         };
         results["rSquare"] = [];
+        results[i + "rSquare"] = [];
         results["comboNumber"] = [];
         results[i + "Intercept"] = [];
         results[i + "fittedModel"] = [];
+        results[i + "pValue"] = [];
 
         for(var k = 0; k < independentCombinations[i].length; k++){
             results[i + independentCombinations[i][k] + "Coeff"] = [];
@@ -71,17 +74,19 @@ function findResults(json, dependentNumber){
                 independentVariables[k] = json.independent[independentCombinations[i][k]].slice(j, j + 12);
                 independentNames[k] = independentCombinations[i][k];
             }
-            var model = calc3(5, dependent, independentVariables, independentNames);
+            var model = calc.calc3(5, dependent, independentVariables, independentNames);
 
             results.Date[j] = json.date[dateKeys[0]][j];
 
             results["rSquare"][j] = model.rSquare;
+            results[i + "rSquare"][j] = model.rSquare;
             results["comboNumber"][j] = i;
             results[i + "Intercept"][j] = model.intercept;
+            results[i + "pValue"][j] = model.pValue;
 
             for(var n = 0; n < independentCombinations[i].length; n++){
                 results[i + independentCombinations[i][n] + "Coeff"][j] = model.params[n];
-                results[i + independentCombinations[i][n] + "pvalue"][j] = "p Value of " + independentCombinations[i][n];
+                results[i + independentCombinations[i][n] + "pvalue"][j] = model.coeffPVals[n];
             }
 
             results[i + "fittedModel"][j] = model.fittedModel;
