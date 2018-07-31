@@ -86,7 +86,7 @@ function findResults(json, dependentNumber){
 
             for(var n = 0; n < independentCombinations[i].length; n++){
                 results[i + independentCombinations[i][n] + "Coeff"][j] = model.params[n];
-                results[i + independentCombinations[i][n] + "pvalue"][j] = "p Value of " + independentCombinations[i][n];
+                results[i + independentCombinations[i][n] + "pvalue"][j] = model.coeffPVals[n];
             }
 
             results[i + "fittedModel"][j] = model.fittedModel;

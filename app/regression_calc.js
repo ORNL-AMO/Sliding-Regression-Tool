@@ -1,4 +1,5 @@
-var jStat = require('jStat').jStat;
+const jStat = require('jStat').jStat;
+const math = require('mathjs');
 var json;
 
 function slidingRegression() {
@@ -8,16 +9,19 @@ function slidingRegression() {
 
     //initializes a 'len' long array with all 0 values
     calc.makeArray = function (len) {
+        var arr = [];
         for (var count = 0; count <= len + 1; count++)
-            this[count] = 0;
+            arr[count] = 0;
+        return arr;
     }
 
     //initializes an x by y matrix with all 0 values
     calc.makeMatrix = function (x, y) {
-        var count;
+        var mat = [];
         this.length = x + 1;
         for (var count = 0; count <= x + 1; count++)
-            this[count] = new calc.makeArray(y);
+            mat[count] = calc.makeArray(y);
+        return mat;
     }
 
     //calculates the determinant of a square matrix
@@ -29,7 +33,8 @@ function slidingRegression() {
             var factor = 1;
             for (var i = 1; i <= len; i++) {
                 if (mat[1][i] != 0) {
-                    var minor = new this.makeMatrix(len - 1, len - 1);
+                    // var minor = new this.makeMatrix(len - 1, len - 1);
+                    var minor = this.makeMatrix(len - 1, len - 1);
                     var col;
                     for (var m = 1; m < len; m++) {
                         if (m < i) col = m;
@@ -48,16 +53,19 @@ function slidingRegression() {
 
     //returns the inverse of a square matrix
     calc.inverse = function (mat) {
-        var determinant = this.det(mat);
+        // var determinant = this.det(mat);
+        var determinant = math.det(mat);
         if (determinant == 0) {
             throw "calc.inverse called with singular matrix.";
         }
         var len = mat.length - 1;
-        var inv = new this.makeMatrix(len, len);
+        // var inv = new this.makeMatrix(len, len);
+        var inv = this.makeMatrix(len, len);
 
         for (var i = 1; i <= len; i++) {
             for (var j = 1; j <= len; j++) {
-                minor = new this.makeMatrix(len - 1, len - 1);
+                // minor = new this.makeMatrix(len - 1, len - 1);
+                minor = this.makeMatrix(len - 1, len - 1);
                 var col, row;
                 for (var m = 1; m <= len - 1; m++) {
                     if (m < j) col = m;
@@ -111,73 +119,119 @@ function slidingRegression() {
             this.n = dependent.length;
             //number of independent variables
             this.m = independent.length;
-            this.indep = new this.makeMatrix(this.m, this.n);
-            this.dep = new this.makeArray(this.n);
+            // this.indep = this.makeMatrix(this.m, this.n);
+            // this.dep = this.makeArray(this.n);
+            this.indep = [[]];
+            this.dep = [];
+            this.xBar = [];
+
+            for (var i = 0; i < this.n; i++) {
+                this.indep[0][i] = 1;
+            }
 
             //Runs through each row (12 months)
-            for (var i = 0; i < this.n; i++) {
+            for (i = 0; i < this.n; i++) {
+                this.dep[i] = dependent[i][0];
                 //Runs through each independent variable
                 for (var j = 0; j < this.m; j++) {
-                    this.indep[j + 1][i] = independent[j][i];
-                    /*
-                    if (xBar[j]) {
-                        xBar[j] = +xBar[j] + +independent[j][i];
+                    if (!this.indep[j + 1]) this.indep[j + 1] = [];
+                    this.indep[j + 1][i] = independent[j][i][0];
+                    if (this.xBar[j]) {
+                        //+s used to prevent JS from turning to string and concatenating
+                        this.xBar[j] = +this.xBar[j] + +independent[j][i];
                     } else {
-                        xBar[j] = independent[j][i];
-                    }*/
+                        this.xBar[j] = independent[j][i];
+                    }
                 }
-                this.dep[i] = dependent[i][0];
             }
-            /*
-            for (j = 0; j < numInd; j++) {
-                this.xBar[j] /= dependent.length;
+            
+            for (j = 0; j < this.m; j++) {
+                this.xBar[j] /= this.n;
             }
-            */
+            
 
         }
     }
 
     calc.linregr = function () {
-        e = 2.718281828459045;
-        pi = 3.141592653589793;
         var k;
         var i;
         var j;
         var sum;
 
-        this.B = new this.makeArray(this.m + 1);
-        this.P = new this.makeMatrix(this.m + 1, this.m + 1);
-        this.invP = new this.makeMatrix(this.m + 1, this.m + 1);
-        var mtemp = this.m + 1;
+        // this.B = new this.makeArray(this.m + 1);
+        // var P = new this.makeMatrix(this.m + 1, this.m + 1);
+        // this.invP = new this.makeMatrix(this.m + 1, this.m + 1);
+        //this.m + 1
+        var B = this.makeArray(this.m - 1);
+        //this.m + 1, this.m + 1
+        var P = this.makeMatrix(this.m - 1, this.m - 1);
+        // var invP = this.makeMatrix(this.m + 1, this.m + 1);
 
-        //              if (N < M+1) alert("your need at least "+ mtemp +" points");
         with (Math) {
-            for (i = 0; i < this.n; i++) this.indep[0][i] = 1;
-            for (i = 1; i <= this.m + 1; i++) {
+            //i = 1; i <= this.m + 1
+            for (i = 0; i <= this.m; i++) {
                 sum = 0;
                 for (k = 0; k < this.n; k++) {
-                    sum = sum + this.indep[i - 1][k] * this.dep[k];
+                    //indep[i-1]
+                    sum = sum + this.indep[i][k] * this.dep[k];
                 }
-                this.B[i] = sum;
+                B[i] = sum;
 
-                for (j = 1; j <= this.m + 1; j++) {
+                //j = 1; j <= this.m + 1
+                for (j = 0; j <= this.m; j++) {
                     sum = 0;
-                    for (k = 0; k < this.n; k++) sum = sum + this.indep[i - 1][k] * this.indep[j - 1][k];
-                    this.P[i][j] = sum;
+                    //indep[i - 1], indep[j - 1]
+                    for (k = 0; k < this.n; k++) sum = sum + this.indep[i][k] * this.indep[j][k];
+                    P[i][j] = sum;
                 }
             }
 
-            this.invP = this.inverse(this.P);
+            // this.invP = this.inverse(this.P);
+            var invP = math.inv(P);
             for (k = 0; k <= this.m; k++) {
                 sum = 0;
 
-                for (j = 1; j <= this.m + 1; j++) {
-                    sum = sum + this.invP[k + 1][j] * this.B[j];
+                //j = 1; j <= this.m + 1
+                for (j = 0; j <= this.m; j++) {
+                    //invP[k + 1]
+                    sum = sum + invP[k][j] * B[j];
                 }
                 // alert("here");
                 this.regrCoeff[k] = sum;
             }
         }
+    }
+
+    calc.coeffTest = function (SSE, params) {
+        //sum of squares of x (sum of (xi-xBar)^2)
+        // var xSS = new Array;
+        // var tVals = new Array;
+        // for (var i = 0; i < this.m; i++) {
+        //     xSS[i] = 0;
+        //     for (var j = 0; j < this.n; j++) {
+        //         //+s used to prevent JS from turning to string and concatenating
+        //         xSS[i] = +xSS[i] + +Math.pow(this.indep[i][j] - this.xBar[i], 2);
+        //     }
+            
+        // }
+        // sse / (this.n - 2)
+
+        //sigma ^ 2
+        var stdev = SSE / (this.n - this.m - 1);
+        //covariance matrix
+        var trans = math.transpose(this.indep);
+        var prod = math.multiply(this.indep, trans);
+        var inv = math.inv(prod);
+        var C = jStat.multiply(inv, stdev);
+        var tstats = [];
+        var pvals = [];
+        for (var i = 0; i < this.m; i++) {
+            tstats[i] = params[i] / math.sqrt(C[i+1][i+1]);
+            pvals[i] = jStat.ttest(tstats[i], this.n - this.m, 2);
+        }
+
+        return pvals;
     }
 
     calc.calc3 = function (num, dependent, independent, independentNames) {
@@ -189,6 +243,7 @@ function slidingRegression() {
             rSquare: "",
             fStatistic: "",
             pValue: "",
+            coeffPVals: [],
             mean: "",
             variance: "",
             mean_1: "",
@@ -287,6 +342,8 @@ function slidingRegression() {
             //number of data points - number of parameters - 1
             dfDenom = this.n - this.m - 1;
             pValue = jStat.ftest(FR, dfNum, dfDenom);
+
+            model.coeffPVals = this.coeffTest(SSE, model.params);
 
             //console.log("F-Statistic: " + FR);
             model.fStatistic = FR;
@@ -650,9 +707,7 @@ function slidingRegression() {
     calc.m = 0;
     calc.indep;
     calc.dep;
-    calc.xBar = new Array;
-    //sum of squares of x (sum(xi-xBar))
-    calc.xSS = new Array;
+    calc.xBar;
     calc.SX = 0;
     calc.SY = 0;
     calc.SXX = 0;
@@ -661,9 +716,9 @@ function slidingRegression() {
     calc.m = 0;
     calc.regrCoeff = new Array;
     calc.sigDig = 3;
-    calc.B;
-    calc.P;
-    calc.invP;
+    // calc.B;
+    // calc.P;
+    // calc.invP;
     calc.y;
 
     return calc;
