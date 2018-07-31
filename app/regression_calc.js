@@ -241,6 +241,7 @@ function slidingRegression() {
             params: [],
             yValues: "",
             rSquare: "",
+            adjRSquare: "",
             fStatistic: "",
             pValue: "",
             coeffPVals: [],
@@ -351,6 +352,7 @@ function slidingRegression() {
             model.pValue = pValue;
             //console.log("R-Square: " + RRSQ);
             model.rSquare = RRSQ;
+            model.adjRSquare = 1 - ((1 - RRSQ) * (this.n - 1) / (this.n - this.m - 1));
 
             //start analysis************************************************************
 
