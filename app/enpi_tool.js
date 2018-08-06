@@ -612,7 +612,7 @@ function displayGraphs(){
         for(var k = 0; k < displayJsons[i].length; k++) {
             dataJsons[k]= [{}];
             for (var j = 0; j < displayJsons[i][k].length; j++) {
-                dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: i, rSquare: displayJsons[i][k][j].rSquare, savingsPercent: savingsLines[i][k][j], fittedModel: displayJsons[i][k][j].fittedModel};
+                dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: i, rSquare: displayJsons[i][k][j].rSquare, savingsPercent: savingsLines[i][k][j], fittedModel: displayJsons[i][k][j].fittedModel, valid: tables[i]["results"][k]["model"+k][j]};
             }
         }
 
@@ -674,10 +674,14 @@ function makeGraphElements(number){
                                                         "      <div id='savings-graph-container" + number + "' class='savings-graph-container'></div>\n" +
                                                         "    </div>\n" +
                                                         "    <div id='legendCol" + number + "' class='col-2' style='padding-left: 0px; overflow: auto;'>" +
-                                                        "       <div id='legend" + number + "' ></div>" +
+                                                        "       <div id='legend" + number + "' >" +
+                                                        "           <input type=\"radio\" onclick=\"changeView('line')\" checked=\"checked\" name=\"changeView\"> Line Graph<br>" +
+                                                        "           <input type=\"radio\" onclick=\"changeView('all')\" name=\"changeView\"> All Models<br>" +
+                                                        "           <input type=\"radio\" onclick=\"changeView('valid')\" name=\"changeView\"> Valid Only<br>" +
+                                                        "       </div>" +
                                                         "    </div>\n" +
                                                         "  </div>\n" +
-                                                        "   <div id='graph-row" + number + "' class=\"row graph-row\">\n" +
+                                                        "   <div id='graph-row" + number + "' class=\"row graph-row\">\n" + 
                                                         "    <div class=\"col-2\" style='padding: 0px'></div>\n" +
                                                         "    <div id='graph-col' class=\"col-8\">\n" +
                                                         "       <div id='range-display-row" + number + "' class='row range-display-row'>" +
@@ -862,11 +866,33 @@ function makeGraph(displayJson, number, combinations, dataJsons) {
 
     activeModels[number] = [];
 
+/*
+    function filterValidData(data) {
+        var validData = [];
+        for (var i = 0; i < data.length; i++) {
+            validData[i] =[{}];
+            for (var j = 0; j < data[i].length; j++) {
+                if (data[i][j]["valid"] === "Pass") {
+                    validData[i][j] = data[i][j];
+                } else {
+                    validData[i][j] = null;
+                }
+            }
+        }
+        return validData;
+    } */
+
+    var line = false;
+
     for(var i = 0; i < dataJsons.length; i++) {
 
+        // clickableBoxData[count] = {data: dataJsons, dependentNumber: number, number: i};
         clickableBoxData[count] = {data: dataJsons, dependentNumber: number, number: i};
 
-        svg.append("path")
+
+        if (line) {
+            svg.append("path")
+            // .data([dataJsons[i]])
             .data([dataJsons[i]])
             .attr("id", "line"+count)
             .attr("class", "line")
@@ -874,6 +900,44 @@ function makeGraph(displayJson, number, combinations, dataJsons) {
             .style("stroke-width", "3px")
             .style("fill", "none")
             .attr("d", valueline);
+        }
+        else {
+            /*
+            function setX(d) {
+                return x(d.modelYear);
+            }
+
+            function setY(d) {
+                return y(d.rSquare);
+            }
+            */
+            var symbol = d3.symbol();
+
+            for (var j = 0; j < dataJsons[i].length; j++) {
+//                 if (dataJsons[i][j]["valid"] === "Pass") {
+                    svg.append("path")
+                    // .data([dataJsons[i]])
+                    .data([dataJsons[i][j]])
+                    .attr("d", symbol.type(function(d) { return d["valid"] === "Pass" ? d3.symbolCircle : d3.symbolDiamond;}))
+                    .attr("transform", "translate(" + x(dataJsons[i][j].modelYear) + "," + y(dataJsons[i][j].rSquare) + ")")
+                    // .attr("id", "line"+count)
+                    .attr("class", "line line"+count + " valid")
+                    .style("fill", lineColors[i]);
+                // }
+//                 else {
+//                     svg.append(d3.symbolCross)
+//                     // .data([dataJsons[i]])
+//                     .data([dataJsons[i][j]])
+//                     .attr("width", 7)
+//                     .attr("height", 7)
+//                     .attr("x", setX)
+//                     .attr("y", setY)
+//                     .attr("id", "line"+count)
+//                     .attr("class", "line invalid")
+//                     .style("fill", lineColors[i]);
+//                 }
+            }
+        }
 
         legendSvg.append("rect")
             .attr("id", "clickableTile"+count)
@@ -994,6 +1058,45 @@ function makeGraph(displayJson, number, combinations, dataJsons) {
     newCol.style.fontSize = "20px";
 }
 
+function scatterPlot(dataJsons) {
+    for (var j = 0; j < dataJsons[i].length; j++) {
+        //                 if (dataJsons[i][j]["valid"] === "Pass") {
+                            svg.append("path")
+                            // .data([dataJsons[i]])
+                            .data([dataJsons[i][j]])
+                            .attr("d", symbol.type(function(d) { return d["valid"] === "Pass" ? d3.symbolCircle : d3.symbolDiamond;}))
+                            .attr("transform", "translate(" + x(dataJsons[i][j].modelYear) + "," + y(dataJsons[i][j].rSquare) + ")")
+                            .attr("id", "line"+count)
+                            .attr("class", "line valid")
+                            .style("fill", lineColors[i]);
+        //                 }
+        //                 else {
+        //                     svg.append(d3.symbolCross)
+        //                     // .data([dataJsons[i]])
+        //                     .data([dataJsons[i][j]])
+        //                     .attr("width", 7)
+        //                     .attr("height", 7)
+        //                     .attr("x", setX)
+        //                     .attr("y", setY)
+        //                     .attr("id", "line"+count)
+        //                     .attr("class", "line invalid")
+        //                     .style("fill", lineColors[i]);
+        //                 }
+    }
+}
+
+function changeView(format) {
+    switch (format[0]) {
+        case 'l':
+            d3.selectAll(".invalid").size(0);
+            break;
+        case 'a':
+            d3.selectAll(".")
+            break;
+        case 'v':
+            d3.selectAll(".invalid").size(0);
+    }
+}
 function remakeModelInfoTable(number, combinations){
     //make model-info-table
     var modelInfoTable = document.getElementById("model-info-table"  + number);
@@ -1538,21 +1641,112 @@ function loadGraphListeners(combinations, displayJsons){
         .y(function (d) {
             return y(d.rSquare);
         });
+/*
+    function showHideElements(d, i){
+        var i = i;
+        d3.select(this)
+            .on("click", () => {
+                if(document.getElementById("line"+i).style.strokeWidth !== "0px") {
+                    d3.select("#line" + i)
+                        .style("stroke-width", "0px")
+                        .style("size", "0px");
+
+                    d3.select("#savingsLine" + i)
+                        .style("stroke-width", "0px");
+
+                    d3.select("#clickableTile"+i)
+                        .style("fill", "gray");
+
+
+                    activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = false;
+                    changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
+
+                    for(var z = 0; z < tables.length; z++){
+
+                        var dataJsons = [];
+                        for(var k = 0; k < displayJsons[z].length; k++) {
+                            dataJsons[k]= [{}];
+                            for (var j = 0; j < displayJsons[z][k].length; j++) {
+                                dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
+                            }
+                        }
+                        makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
+                        makeGuideLine(displayJsons[z], z, combinations, dataJsons);
+                    }
+                }
+                else if (document.getElementsByClassName("line"+i).style.size !== "0px") {
+                    d3.select("#line" + i)
+                    .style("size", "0px");
+
+                    d3.select("#savingsLine" + i)
+                        .style("stroke-width", "0px");
+
+                    d3.select("#clickableTile"+i)
+                        .style("fill", "gray");
+
+
+                    activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = false;
+                    changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
+
+                    for(var z = 0; z < tables.length; z++){
+
+                        var dataJsons = [];
+                        for(var k = 0; k < displayJsons[z].length; k++) {
+                            dataJsons[k]= [{}];
+                            for (var j = 0; j < displayJsons[z][k].length; j++) {
+                                dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
+                            }
+                        }
+                        makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
+                        makeGuideLine(displayJsons[z], z, combinations, dataJsons);
+                    }
+                }
+                else {
+                    d3.select("#line" + i)
+                        .style("stroke-width", "3px")
+                        .style("size", "3px");
+
+                    d3.select("#savingsLine" + i)
+                        .style("stroke-width", "3px");
+
+                    d3.select("#clickableTile"+i)
+                        .style("fill", lineColors[clickableBoxData[i].number]);
+
+                    activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = true;
+                    changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
+
+                    for(var z = 0; z < tables.length; z++){
+
+                        var dataJsons = [];
+                        for(var k = 0; k < displayJsons[z].length; k++) {
+                            dataJsons[k]= [{}];
+                            for (var j = 0; j < displayJsons[z][k].length; j++) {
+                                dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
+                            }
+                        }
+                        makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
+                        makeGuideLine(displayJsons[z], z, combinations, dataJsons);
+                    }
+                }
+            });
+    }*/
 
     d3.selectAll(".clickableBox")
         .each( function(d, i){
             var i = i;
             d3.select(this)
                 .on("click", () => {
-                    if(document.getElementById("line"+i).style.strokeWidth !== "0px") {
+                    if(document.getElementById("line"+i) && document.getElementById("line"+i).style.strokeWidth !== "0px") {
                         d3.select("#line" + i)
-                            .style("stroke-width", "0px");
+                            .style("stroke-width", "0px")
+                            .style("size", "0px");
 
                         d3.select("#savingsLine" + i)
                             .style("stroke-width", "0px");
 
                         d3.select("#clickableTile"+i)
                             .style("fill", "gray");
+
 
                         activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = false;
                         changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
@@ -1570,9 +1764,39 @@ function loadGraphListeners(combinations, displayJsons){
                             makeGuideLine(displayJsons[z], z, combinations, dataJsons);
                         }
                     }
-                    else{
+                    else if (document.getElementsByClassName("line"+i) && document.getElementsByClassName("line"+i)[0].style.size !== "0px") {
+                        d3.selectAll(".line" + i)
+                            .style("size", "0px");
+
+                        d3.select("#savingsLine" + i)
+                            .style("stroke-width", "0px");
+
+                        d3.select("#clickableTile"+i)
+                            .style("fill", "gray");
+
+
+                        activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = false;
+                        changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
+
+                        for(var z = 0; z < tables.length; z++){
+
+                            var dataJsons = [];
+                            for(var k = 0; k < displayJsons[z].length; k++) {
+                                dataJsons[k]= [{}];
+                                for (var j = 0; j < displayJsons[z][k].length; j++) {
+                                    dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
+                                }
+                            }
+                            makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
+                            makeGuideLine(displayJsons[z], z, combinations, dataJsons);
+                        }
+                    }
+                    else {
                         d3.select("#line" + i)
                             .style("stroke-width", "3px");
+
+                        d3.selectAll(".line" + i)
+                            .style("size", "3px");
 
                         d3.select("#savingsLine" + i)
                             .style("stroke-width", "3px");
@@ -1604,7 +1828,7 @@ function loadGraphListeners(combinations, displayJsons){
             var i = i;
             d3.select(this)
                 .on("click", () => {
-                    if(document.getElementById("line"+i).style.strokeWidth !== "0px") {
+                    if (document.getElementById("line"+i) && document.getElementById("line"+i).style.strokeWidth !== "0px") {
                         d3.select("#line" + i)
                             .style("stroke-width", "0px");
 
@@ -1630,9 +1854,39 @@ function loadGraphListeners(combinations, displayJsons){
                             makeGuideLine(displayJsons[z], z, combinations, dataJsons);
                         }
                     }
+                    else if (document.getElementsByClassName("line"+i) && document.getElementsByClassName("line"+i)[0].style.size !== "0px") {
+                        d3.selectAll(".line" + i)
+                            .style("size", "0px");
+
+                        d3.select("#savingsLine" + i)
+                            .style("stroke-width", "0px");
+
+                        d3.select("#clickableTile"+i)
+                            .style("fill", "gray");
+
+
+                        activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = false;
+                        changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
+
+                        for(var z = 0; z < tables.length; z++){
+
+                            var dataJsons = [];
+                            for(var k = 0; k < displayJsons[z].length; k++) {
+                                dataJsons[k]= [{}];
+                                for (var j = 0; j < displayJsons[z][k].length; j++) {
+                                    dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
+                                }
+                            }
+                            makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
+                            makeGuideLine(displayJsons[z], z, combinations, dataJsons);
+                        }
+                    }
                     else{
                         d3.select("#line" + i)
                             .style("stroke-width", "3px");
+
+                        d3.selectAll(".line" + i)
+                            .style("size", "3px");
 
                         d3.select("#savingsLine" + i)
                             .style("stroke-width", "3px");
@@ -1664,7 +1918,7 @@ function loadGraphListeners(combinations, displayJsons){
             var i = i;
             d3.select(this)
                 .on("click", () => {
-                    if(document.getElementById("line"+i).style.strokeWidth !== "0px") {
+                    if(document.getElementById("line"+i) && document.getElementById("line"+i).style.strokeWidth !== "0px") {
                         d3.select("#line" + i)
                             .style("stroke-width", "0px");
 
@@ -1690,9 +1944,39 @@ function loadGraphListeners(combinations, displayJsons){
                             makeGuideLine(displayJsons[z], z, combinations, dataJsons);
                         }
                     }
+                    else if (document.getElementsByClassName("line"+i) && document.getElementsByClassName("line"+i)[0].size !== 0) {
+                        d3.selectAll(".line" + i)
+                            .size(0);
+
+                        d3.select("#savingsLine" + i)
+                            .style("stroke-width", "0px");
+
+                        d3.select("#clickableTile"+i)
+                            .style("fill", "gray");
+
+
+                        activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = false;
+                        changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
+
+                        for(var z = 0; z < tables.length; z++){
+
+                            var dataJsons = [];
+                            for(var k = 0; k < displayJsons[z].length; k++) {
+                                dataJsons[k]= [{}];
+                                for (var j = 0; j < displayJsons[z][k].length; j++) {
+                                    dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
+                                }
+                            }
+                            makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
+                            makeGuideLine(displayJsons[z], z, combinations, dataJsons);
+                        }
+                    }
                     else{
                         d3.select("#line" + i)
                             .style("stroke-width", "3px");
+
+                        d3.selectAll(".line" + i)
+                             .size(0);
 
                         d3.select("#savingsLine" + i)
                             .style("stroke-width", "3px");
