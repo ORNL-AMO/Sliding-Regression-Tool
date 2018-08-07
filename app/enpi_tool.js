@@ -1595,36 +1595,13 @@ function loadGraphListeners(combinations, displayJsons){
         .y(function (d) {
             return y(d.rSquare);
         });
-/*
-    function showHideElements(d, i){
-        if(document.getElementById("line"+i) && document.getElementById("line"+i).style.strokeWidth !== "0px") {
+
+    var showHideElements = function(i){
+        if((document.getElementById("line"+i) && document.getElementById("line"+i).style.strokeWidth !== "0px") ||
+            (document.getElementsByClassName("line"+i) && document.getElementsByClassName("line"+i)[0].style.opacity !== "0")) {
             d3.select("#line" + i)
                 .style("stroke-width", "0px");
 
-            d3.select("#savingsLine" + i)
-                .style("stroke-width", "0px");
-
-            d3.select("#clickableTile"+i)
-                .style("fill", "gray");
-
-
-            activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = false;
-            changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
-
-            for(var z = 0; z < tables.length; z++){
-
-                var dataJsons = [];
-                for(var k = 0; k < displayJsons[z].length; k++) {
-                    dataJsons[k]= [{}];
-                    for (var j = 0; j < displayJsons[z][k].length; j++) {
-                        dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
-                    }
-                }
-                makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
-                makeGuideLine(displayJsons[z], z, combinations, dataJsons);
-            }
-        }
-        else if (document.getElementsByClassName("line"+i) && document.getElementsByClassName("line"+i)[0].style.opacity !== "0") {
             d3.selectAll(".line" + i)
                 .style("opacity", "0");
 
@@ -1680,41 +1657,18 @@ function loadGraphListeners(combinations, displayJsons){
                 makeGuideLine(displayJsons[z], z, combinations, dataJsons);
             }
         }
-    } */
+     } 
 
     d3.selectAll(".clickableBox")
         .each( function(d, i){
             var i = i;
             d3.select(this)
                 .on("click", () => {
-                    if(document.getElementById("line"+i) && document.getElementById("line"+i).style.strokeWidth !== "0px") {
+                    if((document.getElementById("line"+i) && document.getElementById("line"+i).style.strokeWidth !== "0px") ||
+                       (document.getElementsByClassName("line"+i) && document.getElementsByClassName("line"+i)[0].style.opacity !== "0")) {
                         d3.select("#line" + i)
                             .style("stroke-width", "0px");
 
-                        d3.select("#savingsLine" + i)
-                            .style("stroke-width", "0px");
-
-                        d3.select("#clickableTile"+i)
-                            .style("fill", "gray");
-
-
-                        activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = false;
-                        changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
-
-                        for(var z = 0; z < tables.length; z++){
-
-                            var dataJsons = [];
-                            for(var k = 0; k < displayJsons[z].length; k++) {
-                                dataJsons[k]= [{}];
-                                for (var j = 0; j < displayJsons[z][k].length; j++) {
-                                    dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
-                                }
-                            }
-                            makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
-                            makeGuideLine(displayJsons[z], z, combinations, dataJsons);
-                        }
-                    }
-                    else if (document.getElementsByClassName("line"+i) && document.getElementsByClassName("line"+i)[0].style.opacity !== "0") {
                         d3.selectAll(".line" + i)
                             .style("opacity", "0");
 
@@ -1778,34 +1732,11 @@ function loadGraphListeners(combinations, displayJsons){
             var i = i;
             d3.select(this)
                 .on("click", () => {
-                    if(document.getElementById("line"+i) && document.getElementById("line"+i).style.strokeWidth !== "0px") {
+                    if((document.getElementById("line"+i) && document.getElementById("line"+i).style.strokeWidth !== "0px") ||
+                       (document.getElementsByClassName("line"+i) && document.getElementsByClassName("line"+i)[0].style.opacity !== "0")) {
                         d3.select("#line" + i)
                             .style("stroke-width", "0px");
 
-                        d3.select("#savingsLine" + i)
-                            .style("stroke-width", "0px");
-
-                        d3.select("#clickableTile"+i)
-                            .style("fill", "gray");
-
-
-                        activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = false;
-                        changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
-
-                        for(var z = 0; z < tables.length; z++){
-
-                            var dataJsons = [];
-                            for(var k = 0; k < displayJsons[z].length; k++) {
-                                dataJsons[k]= [{}];
-                                for (var j = 0; j < displayJsons[z][k].length; j++) {
-                                    dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
-                                }
-                            }
-                            makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
-                            makeGuideLine(displayJsons[z], z, combinations, dataJsons);
-                        }
-                    }
-                    else if (document.getElementsByClassName("line"+i) && document.getElementsByClassName("line"+i)[0].style.opacity !== "0") {
                         d3.selectAll(".line" + i)
                             .style("opacity", "0");
 
@@ -1869,34 +1800,11 @@ function loadGraphListeners(combinations, displayJsons){
             var i = i;
             d3.select(this)
                 .on("click", () => {
-                    if(document.getElementById("line"+i) && document.getElementById("line"+i).style.strokeWidth !== "0px") {
+                    if((document.getElementById("line"+i) && document.getElementById("line"+i).style.strokeWidth !== "0px") ||
+                       (document.getElementsByClassName("line"+i) && document.getElementsByClassName("line"+i)[0].style.opacity !== "0")) {
                         d3.select("#line" + i)
                             .style("stroke-width", "0px");
 
-                        d3.select("#savingsLine" + i)
-                            .style("stroke-width", "0px");
-
-                        d3.select("#clickableTile"+i)
-                            .style("fill", "gray");
-
-
-                        activeModels[Math.floor(i / combinations.length)][combinations[i % combinations.length]] = false;
-                        changeModelInfoTableModels(Math.floor(i / combinations.length), combinations);
-
-                        for(var z = 0; z < tables.length; z++){
-
-                            var dataJsons = [];
-                            for(var k = 0; k < displayJsons[z].length; k++) {
-                                dataJsons[k]= [{}];
-                                for (var j = 0; j < displayJsons[z][k].length; j++) {
-                                    dataJsons[k][j] = {modelCombo: k, modelYear: j, dependentNumber: z, rSquare: displayJsons[z][k][j].rSquare, savingsPercent: savingsLines[z][k][j], fittedModel: displayJsons[z][k][j].fittedModel};
-                                }
-                            }
-                            makeSavingsGraph(displayJsons[z], z, combinations, dataJsons);
-                            makeGuideLine(displayJsons[z], z, combinations, dataJsons);
-                        }
-                    }
-                    else if (document.getElementsByClassName("line"+i) && document.getElementsByClassName("line"+i)[0].style.opacity !== "0") {
                         d3.selectAll(".line" + i)
                             .style("opacity", "0");
 
