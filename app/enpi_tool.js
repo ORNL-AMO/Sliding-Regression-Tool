@@ -2130,7 +2130,7 @@ function exportData(){
 
     var blob = new Blob([csv], {type: "text/plain;charset=utf-8"});
 
-    saveAs(blob, "export.xlsx");
+    saveAs(blob, "export.csv");
 
 }
 
