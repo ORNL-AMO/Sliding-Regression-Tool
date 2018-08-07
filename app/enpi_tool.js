@@ -906,8 +906,8 @@ function makeGraph(displayJson, number, combinations, dataJsons) {
             var validity = (dataJsons[i][j]["valid"] === "Pass" ? " valid" : " invalid");
             svg.append("path")
             .data([dataJsons[i][j]])
-            .attr("d", symbol.type(function(d) { return d["valid"] === "Pass" ? d3.symbolCircle : d3.symbolDiamond;}))
-            .attr("transform", "translate(" + x(dataJsons[i][j].modelYear) + "," + y(dataJsons[i][j].rSquare) + ")")
+            .attr("d", symbol.type(function(d) { return d["valid"] === "Pass" ? d3.symbolCircle : d3.symbolCross;}))
+            .attr("transform", function(d) { return "translate(" + x(dataJsons[i][j].modelYear) + "," + y(dataJsons[i][j].rSquare) + ") rotate(45)" })
             .attr("class", "scatterplot line line"+count + validity)
             .style("fill", lineColors[i])
             .style("visibility", "hidden");
