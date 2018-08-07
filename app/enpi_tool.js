@@ -882,61 +882,35 @@ function makeGraph(displayJson, number, combinations, dataJsons) {
         return validData;
     } */
 
-    var line = false;
-
     for(var i = 0; i < dataJsons.length; i++) {
 
         // clickableBoxData[count] = {data: dataJsons, dependentNumber: number, number: i};
         clickableBoxData[count] = {data: dataJsons, dependentNumber: number, number: i};
 
 
-        if (line) {
+        //build line
+        svg.append("path")
+        // .data([dataJsons[i]])
+        .data([dataJsons[i]])
+        .attr("id", "line"+count)
+        .attr("class", "line-graph line")
+        .style("stroke", lineColors[i])
+        .style("stroke-width", "3px")
+        .style("fill", "none")
+        .attr("d", valueline);
+
+        var symbol = d3.symbol();
+
+        //build scatterplot, invisible by default
+        for (var j = 0; j < dataJsons[i].length; j++) {
+            var validity = (dataJsons[i][j]["valid"] === "Pass" ? " valid" : " invalid");
             svg.append("path")
-            // .data([dataJsons[i]])
-            .data([dataJsons[i]])
-            .attr("id", "line"+count)
-            .attr("class", "line")
-            .style("stroke", lineColors[i])
-            .style("stroke-width", "3px")
-            .style("fill", "none")
-            .attr("d", valueline);
-        }
-        else {
-            /*
-            function setX(d) {
-                return x(d.modelYear);
-            }
-
-            function setY(d) {
-                return y(d.rSquare);
-            }
-            */
-            var symbol = d3.symbol();
-
-            for (var j = 0; j < dataJsons[i].length; j++) {
-//                 if (dataJsons[i][j]["valid"] === "Pass") {
-                    svg.append("path")
-                    // .data([dataJsons[i]])
-                    .data([dataJsons[i][j]])
-                    .attr("d", symbol.type(function(d) { return d["valid"] === "Pass" ? d3.symbolCircle : d3.symbolDiamond;}))
-                    .attr("transform", "translate(" + x(dataJsons[i][j].modelYear) + "," + y(dataJsons[i][j].rSquare) + ")")
-                    // .attr("id", "line"+count)
-                    .attr("class", "line line"+count + " valid")
-                    .style("fill", lineColors[i]);
-                // }
-//                 else {
-//                     svg.append(d3.symbolCross)
-//                     // .data([dataJsons[i]])
-//                     .data([dataJsons[i][j]])
-//                     .attr("width", 7)
-//                     .attr("height", 7)
-//                     .attr("x", setX)
-//                     .attr("y", setY)
-//                     .attr("id", "line"+count)
-//                     .attr("class", "line invalid")
-//                     .style("fill", lineColors[i]);
-//                 }
-            }
+            .data([dataJsons[i][j]])
+            .attr("d", symbol.type(function(d) { return d["valid"] === "Pass" ? d3.symbolCircle : d3.symbolDiamond;}))
+            .attr("transform", "translate(" + x(dataJsons[i][j].modelYear) + "," + y(dataJsons[i][j].rSquare) + ")")
+            .attr("class", "scatterplot line line"+count + validity)
+            .style("fill", lineColors[i])
+            .style("visibility", "hidden");
         }
 
         legendSvg.append("rect")
@@ -1058,43 +1032,23 @@ function makeGraph(displayJson, number, combinations, dataJsons) {
     newCol.style.fontSize = "20px";
 }
 
-function scatterPlot(dataJsons) {
-    for (var j = 0; j < dataJsons[i].length; j++) {
-        //                 if (dataJsons[i][j]["valid"] === "Pass") {
-                            svg.append("path")
-                            // .data([dataJsons[i]])
-                            .data([dataJsons[i][j]])
-                            .attr("d", symbol.type(function(d) { return d["valid"] === "Pass" ? d3.symbolCircle : d3.symbolDiamond;}))
-                            .attr("transform", "translate(" + x(dataJsons[i][j].modelYear) + "," + y(dataJsons[i][j].rSquare) + ")")
-                            .attr("id", "line"+count)
-                            .attr("class", "line valid")
-                            .style("fill", lineColors[i]);
-        //                 }
-        //                 else {
-        //                     svg.append(d3.symbolCross)
-        //                     // .data([dataJsons[i]])
-        //                     .data([dataJsons[i][j]])
-        //                     .attr("width", 7)
-        //                     .attr("height", 7)
-        //                     .attr("x", setX)
-        //                     .attr("y", setY)
-        //                     .attr("id", "line"+count)
-        //                     .attr("class", "line invalid")
-        //                     .style("fill", lineColors[i]);
-        //                 }
-    }
-}
-
 function changeView(format) {
     switch (format[0]) {
         case 'l':
-            d3.selectAll(".invalid").size(0);
+            d3.selectAll(".scatterplot").style("visibility", "hidden");
+            d3.selectAll(".line-graph").style("visibility", "visible");
             break;
         case 'a':
-            d3.selectAll(".")
+            d3.selectAll(".line-graph").style("visibility", "hidden");
+            d3.selectAll(".scatterplot").style("visibility", "visible");
             break;
         case 'v':
-            d3.selectAll(".invalid").size(0);
+            d3.selectAll(".line-graph").style("visibility", "hidden");
+            d3.selectAll(".invalid").style("visibility", "hidden");
+            d3.selectAll(".valid").style("visibility", "visible");
+            break;
+        default:
+            console.log("Failure in changeView()");
     }
 }
 function remakeModelInfoTable(number, combinations){
@@ -1641,7 +1595,7 @@ function loadGraphListeners(combinations, displayJsons){
         .y(function (d) {
             return y(d.rSquare);
         });
-
+/*
     function showHideElements(d, i){
         if(document.getElementById("line"+i) && document.getElementById("line"+i).style.strokeWidth !== "0px") {
             d3.select("#line" + i)
@@ -1726,7 +1680,7 @@ function loadGraphListeners(combinations, displayJsons){
                 makeGuideLine(displayJsons[z], z, combinations, dataJsons);
             }
         }
-    }
+    } */
 
     d3.selectAll(".clickableBox")
         .each( function(d, i){
