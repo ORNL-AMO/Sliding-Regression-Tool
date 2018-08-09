@@ -9,6 +9,23 @@ function getCombinations(array) {
     return results.slice(1);
 }
 
+function modelCheck(independentCombinations, model, i, j, len) {
+    //1. The p-value for the overall model fit must be less than 0.10
+    if (model[i + "pValue"][j] < .1) {
+        var test = false;
+        //2. All independent variables included in the model must have a p-value of less than 0.20
+        for (var k = 0; k < len; k++) {
+            if (model[i + independentCombinations[i][k] + "pvalue"][j] >= .2) return false;
+            if (!test && model[i + independentCombinations[i][k] + "pvalue"][j] < .1) test = true;
+        }
+        //3. At least one of the independent variables in the model must have a p-value of less than 0.10
+        if (test) {
+            // 4. The adjusted R2 for the regression must be at least 0.50
+            return model[i + "adjustedRSquare"][j] >= .5;
+        }
+    } 
+    return false;
+}
 
 //TODO Needs work
 function findResults(json, dependentNumber){
@@ -55,10 +72,12 @@ function findResults(json, dependentNumber){
         };
         results["rSquare"] = [];
         results[i + "rSquare"] = [];
+        results[i + "adjustedRSquare"] = [];
         results["comboNumber"] = [];
         results[i + "Intercept"] = [];
         results[i + "fittedModel"] = [];
         results[i + "pValue"] = [];
+        results["model" + i] = [];
 
         for(var k = 0; k < independentCombinations[i].length; k++){
             results[i + independentCombinations[i][k] + "Coeff"] = [];
@@ -80,6 +99,7 @@ function findResults(json, dependentNumber){
 
             results["rSquare"][j] = model.rSquare;
             results[i + "rSquare"][j] = model.rSquare;
+            results[i + "adjustedRSquare"][j] = model.adjRSquare;
             results["comboNumber"][j] = i;
             results[i + "Intercept"][j] = model.intercept;
             results[i + "pValue"][j] = model.pValue;
@@ -90,6 +110,7 @@ function findResults(json, dependentNumber){
             }
 
             results[i + "fittedModel"][j] = model.fittedModel;
+            results["model" + i][j] = (modelCheck(independentCombinations, results, i, j, independentCombinations[i].length) ? "Pass" : "Fail");
         }
 
         totalResult[i] = results;
