@@ -119,6 +119,44 @@ html, body {
     cursor: not-allowed;
 }
 
+#report-col {
+    text-align: center;
+}
+
+#report-btn {
+    font-size: 25px;
+    background-color: #B27300;
+    color: white;
+    border-radius: 6px;
+    border: 0px;
+    border-top: none;
+    border-bottom: 3px solid #838383;
+    display: none;
+}
+
+#report-btn:disabled{
+    font-size: 25px;
+    background-color: #9b9b9b;
+    color: white;
+    border-radius: 6px;
+    border: 0px;
+    border-top: none;
+    border-bottom: 3px solid #6a6a6a;
+    display: none;
+    cursor: not-allowed;
+}
+
+#report-btn:focus {
+    outline: none !important;
+}
+
+#report-btn:active {
+    outline: none !important;
+    background-color: #805300;
+    border-top: 3px solid #ffffff;
+    border-bottom: none;
+}
+
 #export-col {
     text-align: center;
 }
@@ -420,6 +458,10 @@ tr:nth-child(odd) {
 }
 
 #displayZone {
+    padding-top: 20px;
+}
+
+#reportZone {
     padding-top: 20px;
 }
 
