@@ -338,7 +338,7 @@ function calcENPI(){
 
 
         document.getElementById("displayZone").innerHTML = "";
-
+        document.getElementById("reportZone").innerHTML = "";
         document.getElementById("display-format-col").style.display = "inline";
         document.getElementById("export-btn").style.display = "inline";
     }
@@ -377,7 +377,11 @@ function report(index, number) {
     row.style.backgroundColor = "#26484F";
     row.style.color = "#E9ECED";
     row.style.width = "100%";
-    row.insertCell().appendChild(document.createTextNode(tables[number]["results"][index][(index)+"fittedModel"][Math.floor(xPosition)]));
+    cell = row.insertCell();
+    cell.colSpan = formatted_json["date"][Object.keys(formatted_json.date)].length / 12;
+    cell.appendChild(document.createTextNode(tables[number]["results"][index][(index)+"fittedModel"][Math.floor(xPosition)]));
+    cell.style.border = "1px solid black";
+
     
 
     zone.appendChild(report);
@@ -1017,6 +1021,14 @@ function makeGraph(displayJson, number, combinations, dataJsons) {
     for(var i = dataJsons.length-1; 0 <= i; i--) {
 
         var newRow = modelInfoTable.insertRow(0);
+        newRow.id = "row:"+combinations[i]+number;
+        var reportCall = function(i, number) {
+            return function() {
+                report(i, number);
+            };
+        };
+        newRow.onclick = reportCall(i, number);
+        //report(i,number)
 
         //Savings %
         newCol = newRow.insertCell(0);
@@ -1088,7 +1100,7 @@ function makeGraph(displayJson, number, combinations, dataJsons) {
     newCol.style.textAlign = "center";
     newCol.style.fontSize = "20px";
 
-    addRowHandlers(number);
+    // addRowHandlers(number);
 }
 
 function changeView(format) {
@@ -1123,6 +1135,13 @@ function remakeModelInfoTable(number, combinations){
     for(var i = combinations.length-1; 0 <= i; i--) {
         if(activeModels[number][combinations[i]]) {
             var newRow = modelInfoTable.insertRow(0);
+            newRow.id = "row:"+combinations[i]+number;
+            var reportCall = function(i, number) {
+                return function() {
+                    report(i, number);
+                };
+            };
+            newRow.onclick = reportCall(i, number);
 
             //Savings %
             newCol = newRow.insertCell(0);
