@@ -345,7 +345,8 @@ function calcENPI(){
 }
 
 function showReport() {
-    document.getElementById("reportZone").style.display = "block";
+    var report = document.getElementById("report");
+    report.style.display = (report.style.display === "block" ? "none" : "block");
 }
 
 function report(index, number) {
@@ -376,7 +377,7 @@ function report(index, number) {
     row.style.backgroundColor = "#26484F";
     row.style.color = "#E9ECED";
     row.style.width = "100%";
-    row.insertCell().appendChild(document.createTextNode(tables[number]["results"][index][index+"fittedModel"][Math.floor(xPosition)]));
+    row.insertCell().appendChild(document.createTextNode(tables[number]["results"][index][(index)+"fittedModel"][Math.floor(xPosition)]));
     
 
     zone.appendChild(report);
@@ -773,12 +774,15 @@ function addRowHandlers(number) {
         rows = table.getElementsByTagName("tr"),
         currentRow,
         createHandler;
-    for (var i = 0; i < rows.length; i++) {
-        currentRow = table.rows[i];
-        createHandler = function() {
-            return report(i,number);
+    for (var i = 2; i < rows.length; i++) {
+        var currentRow = table.rows[i];
+        var createHandler = function(i,number) {
+            return function() {
+                report(i-2,number);
+            };
         };
-        currentRow.onClick = createHandler();
+        currentRow.onclick = createHandler(i,number);
+//         currentRow.onclick = function() { return report(i,number); };
     }
 }
 
