@@ -354,18 +354,24 @@ function report(index, number) {
         report = document.createElement("table");
 
     //remove existing report
-    if (document.getElementById("report")) zone.removeChild(document.getElementById("report"));
+    var remainVisible;
+    if (document.getElementById("report")) {
+        remainVisible = (document.getElementById("report").style.display === "block");
+        zone.removeChild(document.getElementById("report"));
+    }
 
     //fixme adjust width
     report.style.width = "75%";
     report.style.border = "1px solid black";
     report.style.margin = "auto";
-    report.style.display = "none";
+    report.style.display = (remainVisible ? "block" : "none");
     report.id = "report";
 
     var row = report.insertRow(),
         cell;
+
     row.insertCell();
+
     for (var i = 12; i < formatted_json["date"][Object.keys(formatted_json.date)].length; i += 12) {
         cell = row.insertCell();
         //fixme, change substring to allow for different formatted dates. Currently expects "YYYY-MM-DD"
