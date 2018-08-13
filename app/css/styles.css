@@ -40,6 +40,14 @@ html, body {
 #model-info-table-col {
 }
 
+.model-info-table-row:hover {
+    background-color: #A9A9A9;
+}
+
+.model-info-table-row:active {
+    background-color: #2F4F4F;
+}
+
 #model-info-table-div{
     overflow-x: auto;
     overflow-y: auto;

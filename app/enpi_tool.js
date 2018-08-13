@@ -1021,6 +1021,7 @@ function makeGraph(displayJson, number, combinations, dataJsons) {
     for(var i = dataJsons.length-1; 0 <= i; i--) {
 
         var newRow = modelInfoTable.insertRow(0);
+        newRow.className = "model-info-table-row";
         newRow.id = "row:"+combinations[i]+number;
         var reportCall = function(i, number) {
             return function() {
@@ -1135,6 +1136,7 @@ function remakeModelInfoTable(number, combinations){
     for(var i = combinations.length-1; 0 <= i; i--) {
         if(activeModels[number][combinations[i]]) {
             var newRow = modelInfoTable.insertRow(0);
+            newRow.className = "model-info-table-row";
             newRow.id = "row:"+combinations[i]+number;
             var reportCall = function(i, number) {
                 return function() {
