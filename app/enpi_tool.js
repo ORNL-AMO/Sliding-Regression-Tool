@@ -338,10 +338,59 @@ function calcENPI(){
 
 
         document.getElementById("displayZone").innerHTML = "";
-
+        document.getElementById("reportZone").innerHTML = "";
         document.getElementById("display-format-col").style.display = "inline";
         document.getElementById("export-btn").style.display = "inline";
     }
+}
+
+function showReport() {
+    var report = document.getElementById("report");
+    report.style.display = (report.style.display === "block" ? "none" : "block");
+}
+
+function report(index, number) {
+    var zone = document.getElementById("reportZone"),
+        report = document.createElement("table");
+
+    //remove existing report
+    var remainVisible;
+    if (document.getElementById("report")) {
+        remainVisible = (document.getElementById("report").style.display === "block");
+        zone.removeChild(document.getElementById("report"));
+    }
+
+    //fixme adjust width
+    report.style.width = "75%";
+    report.style.border = "1px solid black";
+    report.style.margin = "auto";
+    report.style.display = (remainVisible ? "block" : "none");
+    report.id = "report";
+
+    var row = report.insertRow(),
+        cell;
+
+    row.insertCell();
+
+    for (var i = 12; i < formatted_json["date"][Object.keys(formatted_json.date)].length; i += 12) {
+        cell = row.insertCell();
+        //fixme, change substring to allow for different formatted dates. Currently expects "YYYY-MM-DD"
+        cell.appendChild(document.createTextNode(formatted_json["date"][Object.keys(formatted_json.date)][i-12][0].substring(0,10) + " - " + 
+                                                formatted_json["date"][Object.keys(formatted_json.date)][i][0].substring(0,10)));
+        cell.style.border = "1px solid black";
+    }
+    row = report.insertRow();
+    row.style.backgroundColor = "#26484F";
+    row.style.color = "#E9ECED";
+    row.style.width = "100%";
+    cell = row.insertCell();
+    cell.colSpan = formatted_json["date"][Object.keys(formatted_json.date)].length / 12;
+    cell.appendChild(document.createTextNode(tables[number]["results"][index][(index)+"fittedModel"][Math.floor(xPosition)]));
+    cell.style.border = "1px solid black";
+
+    
+
+    zone.appendChild(report);
 }
 
 function makeDisplayJson(json, dependentNumber, model){
@@ -624,6 +673,7 @@ function displayGraphs(){
     }
 
     loadGraphListeners(combinations, displayJsons);
+    document.getElementById("report-btn").style.display = "inline";
 }
 
 const lineColors = [
@@ -728,6 +778,23 @@ function makeGraphElements(number){
 var rMargin = {top: 10, right: 15, bottom: 75, left: 50};
 
 var activeModels = [];
+
+function addRowHandlers(number) {
+    var table = document.getElementById("model-info-table" + number),
+        rows = table.getElementsByTagName("tr"),
+        currentRow,
+        createHandler;
+    for (var i = 2; i < rows.length; i++) {
+        var currentRow = table.rows[i];
+        var createHandler = function(i,number) {
+            return function() {
+                report(i-2,number);
+            };
+        };
+        currentRow.onclick = createHandler(i,number);
+//         currentRow.onclick = function() { return report(i,number); };
+    }
+}
 
 function makeGraph(displayJson, number, combinations, dataJsons) {
 
@@ -960,6 +1027,15 @@ function makeGraph(displayJson, number, combinations, dataJsons) {
     for(var i = dataJsons.length-1; 0 <= i; i--) {
 
         var newRow = modelInfoTable.insertRow(0);
+        newRow.className = "model-info-table-row";
+        newRow.id = "row:"+combinations[i]+number;
+        var reportCall = function(i, number) {
+            return function() {
+                report(i, number);
+            };
+        };
+        newRow.onclick = reportCall(i, number);
+        //report(i,number)
 
         //Savings %
         newCol = newRow.insertCell(0);
@@ -1030,6 +1106,8 @@ function makeGraph(displayJson, number, combinations, dataJsons) {
     newCol.innerHTML = "<strong>Model Information</strong>";
     newCol.style.textAlign = "center";
     newCol.style.fontSize = "20px";
+
+    // addRowHandlers(number);
 }
 
 function changeView(format) {
@@ -1064,6 +1142,14 @@ function remakeModelInfoTable(number, combinations){
     for(var i = combinations.length-1; 0 <= i; i--) {
         if(activeModels[number][combinations[i]]) {
             var newRow = modelInfoTable.insertRow(0);
+            newRow.className = "model-info-table-row";
+            newRow.id = "row:"+combinations[i]+number;
+            var reportCall = function(i, number) {
+                return function() {
+                    report(i, number);
+                };
+            };
+            newRow.onclick = reportCall(i, number);
 
             //Savings %
             newCol = newRow.insertCell(0);
@@ -1411,6 +1497,7 @@ function makeGuideLine(displayJson, number, combinations, dataJsons){
         })
         .on("click", () => {
             lineLock[number] = !lineLock[number];
+            document.getElementById("report-btn").disabled = lineLock[number];
 
             xPosition = x.invert(d3.mouse(d3.event.currentTarget)[0]);
 
@@ -1472,6 +1559,7 @@ function makeGuideLine(displayJson, number, combinations, dataJsons){
         })
         .on("click", () => {
             lineLock[number] = !lineLock[number];
+            document.getElementById("report-btn").disabled = lineLock[number];
 
             xPosition = x.invert(d3.mouse(d3.event.currentTarget)[0]);
 
@@ -1560,6 +1648,7 @@ var positionValues = [];
 function updateModelInfoTable(number, dataJsons, combinations, position, displayJson){
 
     document.getElementById("current-position" + number).innerHTML = "Position Date: " + displayJson[0][position].Date;
+    var results = document.getElementById("results");
 
     for(var i = combinations.length-1; 0 <= i; i--) {
 
@@ -1573,6 +1662,8 @@ function updateModelInfoTable(number, dataJsons, combinations, position, display
             document.getElementById(combinations[i] + "rSquared" + number).innerHTML = dataJsons[i][position].rSquare.toFixed(4);
             document.getElementById(combinations[i] + "Savings" + number).innerHTML = (dataJsons[i][position].savingsPercent).toFixed(2);
             document.getElementById(combinations[i] + "FittedModel" + number).innerHTML = dataJsons[i][position].fittedModel;
+
+
         }
     }
 }
@@ -2085,7 +2176,9 @@ function clearData(){
     document.getElementById("calculate-btn").style.display = "none";
     document.getElementById("calculate-btn-row").style.paddingTop = "0px";
     document.getElementById("export-btn").style.display = "none";
+    document.getElementById("report-btn").style.display = "none";
     document.getElementById("displayZone").innerHTML = "";
+    document.getElementById("reportZone").innerHTML = "";
     document.getElementById("display-format-col").style.display = "none";
 }
 
